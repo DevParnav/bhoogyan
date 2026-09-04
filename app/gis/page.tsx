@@ -13,6 +13,8 @@ const MapComponent = dynamic(() => import('@/components/MapComponent'), {
   loading: () => <div className="h-full w-full bg-accent/20 animate-pulse flex items-center justify-center text-text-secondary font-medium">Loading GIS Map...</div>
 });
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 type Tab = 'overview' | 'classification' | 'change' | 'prediction' | 'risk' | 'suitability';
 
 export default function LandIntelligence() {
