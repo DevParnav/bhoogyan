@@ -91,6 +91,53 @@ export default function LandIntelligence() {
     results: true
   });
 
+  // Split-Pane Layout States
+  const [mapWidthPct, setMapWidthPct] = useState<number>(62);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    // Load saved width on mount
+    const saved = localStorage.getItem('bhoogyan-gis-map-width');
+    if (saved) {
+      const parsed = parseFloat(saved);
+      if (!isNaN(parsed) && parsed >= 40 && parsed <= 75) {
+        setMapWidthPct(parsed);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    
+    const handlePointerMove = (e: PointerEvent) => {
+      // Calculate width percentage based on viewport width
+      const newPct = (e.clientX / window.innerWidth) * 100;
+      // Clamp between 40 and 75
+      const clamped = Math.max(40, Math.min(75, newPct));
+      setMapWidthPct(clamped);
+    };
+
+    const handlePointerUp = () => {
+      setIsResizing(false);
+      localStorage.setItem('bhoogyan-gis-map-width', mapWidthPct.toString());
+      // Force leaflet map invalidation
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 10);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    
+    // Disable text selection and pointer events on iframes/maps while dragging
+    document.body.style.userSelect = 'none';
+    
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      document.body.style.userSelect = '';
+      localStorage.setItem('bhoogyan-gis-map-width', mapWidthPct.toString());
+    };
+  }, [isResizing, mapWidthPct]);
+
   // Demo Data States
   const [selectedPrediction, setSelectedPrediction] = useState<PredictionDemoDataset | null>(null);
   const [isSimulatingPrediction, setIsSimulatingPrediction] = useState(false);
@@ -598,18 +645,16 @@ export default function LandIntelligence() {
 
       {/* Content Area */}
       <div className="flex-1 min-h-0 overflow-hidden pb-4">
-        <div className={`grid h-full gap-6 ${
-          panelMode === 'compact' ? 'grid-cols-1 lg:grid-cols-4' : 
-          panelMode === 'wide' ? 'grid-cols-1 lg:grid-cols-2' : 
-          'grid-cols-1 lg:grid-cols-3'
-        }`}>
+        <style>{`
+          @media (min-width: 1024px) {
+            .resizable-map-panel { width: ${mapWidthPct}% !important; flex: 0 0 ${mapWidthPct}% !important; }
+            .resizable-results-panel { width: calc(100% - ${mapWidthPct}% - 16px) !important; flex: 0 0 calc(100% - ${mapWidthPct}% - 16px) !important; }
+          }
+        `}</style>
+        <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-0 relative">
           
           {/* Main Map Container */}
-          <div className={`flex flex-col h-full z-0 ${
-            panelMode === 'compact' ? 'lg:col-span-3' : 
-            panelMode === 'wide' ? 'lg:col-span-1' : 
-            'lg:col-span-2'
-          }`}>
+          <div className={`resizable-map-panel flex flex-col h-full z-0 w-full ${isResizing ? 'pointer-events-none' : ''}`}>
             <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
               <div className="p-4 border-b border-accent flex justify-between items-center bg-background/50 flex-shrink-0">
                 <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
@@ -625,8 +670,21 @@ export default function LandIntelligence() {
             </div>
           </div>
 
+          {/* Resize Handle (Desktop Only) */}
+          <div 
+            className="hidden lg:flex w-[16px] flex-shrink-0 cursor-col-resize justify-center items-center group relative z-10"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              setIsResizing(true);
+            }}
+          >
+            <div className={`w-1 h-12 rounded-full transition-colors ${isResizing ? 'bg-primary' : 'bg-accent group-hover:bg-primary/50'}`} />
+            {/* Extended hit area */}
+            <div className="absolute inset-y-0 -inset-x-2 bg-transparent" />
+          </div>
+
           {/* Side Panels Based on Tab */}
-          <div className="h-full overflow-y-auto pr-2 pb-12 space-y-6">
+          <div className={`resizable-results-panel h-full w-full overflow-y-auto pr-2 pb-12 space-y-6 ${isResizing ? 'pointer-events-none select-none' : ''}`}>
             
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
