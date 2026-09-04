@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
     const scriptPath = path.join(process.cwd(), 'app', 'api', 'services', 'validate_pair.py');
   console.log('[CHANGE_VALIDATE] beforeFilePath:', beforeFilePath);
   console.log('[CHANGE_VALIDATE] afterFilePath:', afterFilePath);
-  console.log('[CHANGE_VALIDATE] starting validation script');
+    console.log('[CHANGE_VALIDATE] starting validation script');
+    console.log('[CHANGE_VALIDATE] validating BEFORE scene');
+    console.log('[CHANGE_VALIDATE] validating AFTER scene');
 
     const validationStart = Date.now();
     const result = await new Promise((resolve, reject) => {
@@ -106,5 +108,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-  console.log('[CHANGE_VALIDATE] completed in', Date.now() - startTime, 'ms');
+
 }

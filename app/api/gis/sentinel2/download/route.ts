@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Sentinel2Service, GeoJsonFeature, Scene } from '../../../services/sentinel2Service';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const startTime = Date.now();
   console.log('[SENTINEL2 DOWNLOAD] request received');
   try {
