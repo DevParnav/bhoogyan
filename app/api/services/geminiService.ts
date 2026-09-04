@@ -33,6 +33,26 @@ export async function askGemini(message: string): Promise<string> {
     systemInstruction
   });
 
-  const result = await model.generateContent(message);
-  return result.response.text();
+  try {
+    const result = await model.generateContent(message);
+    
+    if (!result.response) {
+      throw new Error("Gemini API returned an empty response object.");
+    }
+    
+    const candidates = result.response.candidates;
+    if (!candidates || candidates.length === 0) {
+      throw new Error("Gemini API returned no candidates. The request might have been blocked by safety filters.");
+    }
+
+    const text = result.response.text();
+    if (!text) {
+      throw new Error("Gemini API returned empty text.");
+    }
+
+    return text;
+  } catch (err: any) {
+    console.error("[GEMINI SERVICE ERROR]:", err);
+    throw err;
+  }
 }
