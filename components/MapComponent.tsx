@@ -22,12 +22,37 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ onAoiCreated, onAoiCleared }: MapComponentProps) {
+  // Helper to convert Leaflet GeoJSON (lat,lng) to proper GeoJSON (lng,lat)
+  const normalizeCoordinates = (geoJson: any) => {
+    if (!geoJson || !geoJson.geometry) return geoJson;
+    const { type, coordinates } = geoJson.geometry;
+    const swap = (coord: any) => {
+      // Recursively swap lat/lng pairs
+      if (typeof coord[0] === 'number' && typeof coord[1] === 'number') {
+        return [coord[1], coord[0]]; // [lat, lng] => [lng, lat]
+      }
+      return coord.map(swap);
+    };
+    let newCoords = coordinates;
+    if (type === 'Polygon' || type === 'MultiPolygon') {
+      newCoords = swap(coordinates);
+    } else if (type === 'Point') {
+      newCoords = swap(coordinates);
+    } else if (type === 'LineString' || type === 'MultiLineString') {
+      newCoords = swap(coordinates);
+    }
+    return { ...geoJson, geometry: { ...geoJson.geometry, coordinates: newCoords } };
+  };
+
   const _onCreate = (e: any) => {
     const layer = e.layer;
     if (onAoiCreated) {
-      onAoiCreated(layer.toGeoJSON());
+      const rawGeo = layer.toGeoJSON();
+      const normalized = normalizeCoordinates(rawGeo);
+      onAoiCreated(normalized);
     }
   };
+  // Original _onCreate removed; normalized version above handles AOI creation
 
   const _onDeleted = () => {
     if (onAoiCleared) {

@@ -183,18 +183,21 @@ export class Sentinel2Service {
       tile: f.properties?.['grid:code'] || 'Unknown'
     }));
 
-    return {
-      success: true,
-      provider: providerName,
-      collection: "sentinel-2-l2a",
-      search: searchOptions,
-      aoi: {
-        geometryType: aoi.geometry.type,
-        bbox: [bbox.minLng, bbox.minLat, bbox.maxLng, bbox.maxLat]
-      },
-      count: scenes.length,
-      scenes
-    };
+      const result: any = {
+        success: true,
+        provider: providerName,
+        collection: "sentinel-2-l2a",
+        search: searchOptions,
+        aoi: {
+          geometryType: aoi.geometry.type,
+          bbox: [bbox.minLng, bbox.minLat, bbox.maxLng, bbox.maxLat]
+        },
+        count: scenes.length,
+        scenes,
+        
+      };
+
+      return result;
   }
 
   /**
