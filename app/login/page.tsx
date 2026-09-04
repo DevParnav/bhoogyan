@@ -4,36 +4,68 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Globe, Loader2 } from 'lucide-react';
-import { loginWithEmail, loginWithGoogle, getFriendlyErrorMessage } from '@/lib/auth';
+import { 
+  loginWithEmail, 
+  loginWithGoogle, 
+  signUp,
+  resetPassword,
+  getFriendlyErrorMessage 
+} from '@/lib/auth';
 import { isConfigured } from '@/lib/firebase';
+import { checkProfileCompletion } from '@/lib/userProfile';
+
+type AuthMode = 'SIGN_IN' | 'SIGN_UP' | 'FORGOT_PASSWORD';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<AuthMode>('SIGN_IN');
+  
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setError(null);
+    setSuccess(null);
+    setPassword('');
+    setConfirmPassword('');
+  };
+
+  const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
     if (!isConfigured) {
       setError('Firebase configuration is missing. Authentication unavailable.');
       return;
     }
 
-    setIsLoading(true);
     setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+
     try {
-      await loginWithEmail(email, password);
-      router.push('/');
+      if (mode === 'SIGN_IN') {
+        if (!email || !password) throw new Error('Please enter both email and password.');
+        await loginWithEmail(email, password);
+        // AuthProvider handles the routing, but let's assume it works.
+      } else if (mode === 'SIGN_UP') {
+        if (!name || !email || !password || !confirmPassword) throw new Error('Please fill in all fields.');
+        if (password !== confirmPassword) throw new Error('Passwords do not match.');
+        await signUp(email, password);
+        // We'd ideally save the display name, but we can do that in onboarding.
+      } else if (mode === 'FORGOT_PASSWORD') {
+        if (!email) throw new Error('Please enter your email address.');
+        await resetPassword(email);
+        setSuccess('Password reset email sent. Please check your inbox.');
+        setMode('SIGN_IN');
+      }
     } catch (err: any) {
-      setError(getFriendlyErrorMessage(err));
+      setError(getFriendlyErrorMessage(err) || err.message);
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +73,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!isConfigured) {
-      setError('Firebase configuration is missing. Authentication unavailable.');
+      setError('Firebase configuration is missing.');
       return;
     }
 
@@ -49,9 +81,8 @@ export default function LoginPage() {
     setError(null);
     try {
       await loginWithGoogle();
-      router.push('/');
+      // AuthProvider handles routing.
     } catch (err: any) {
-      // Ignored if popup closed
       if (err.code !== 'auth/popup-closed-by-user') {
         setError(getFriendlyErrorMessage(err));
       }
@@ -71,52 +102,83 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-brand-dark relative overflow-hidden">
-      {/* Subtle ambient lighting effect */}
       <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-white/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-white/5 blur-[100px] pointer-events-none" />
       
       <div className="w-[410px] max-w-[calc(100%-32px)] mx-auto relative z-10">
-        
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 sm:p-10 shadow-2xl">
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4">
               <Globe className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight mb-1">Sign In</h1>
+            <h1 className="text-2xl font-semibold text-white tracking-tight mb-1">
+              {mode === 'SIGN_IN' && 'Sign In'}
+              {mode === 'SIGN_UP' && 'Create Account'}
+              {mode === 'FORGOT_PASSWORD' && 'Reset Password'}
+            </h1>
             <p className="text-sm text-white/50 text-center">
-              Please enter your details to sign in.
+              {mode === 'SIGN_IN' && 'Please enter your details to sign in.'}
+              {mode === 'SIGN_UP' && 'Please enter your details to sign up.'}
+              {mode === 'FORGOT_PASSWORD' && 'Enter your email to receive a reset link.'}
             </p>
           </div>
 
-          <form onSubmit={handleEmailSignIn} className="space-y-4">
+          <form onSubmit={handleAction} className="space-y-4">
             <div className="space-y-4">
+              {mode === 'SIGN_UP' && (
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all"
+                  disabled={isLoading || isGoogleLoading}
+                />
+              )}
+
               <input
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all"
                 disabled={isLoading || isGoogleLoading}
               />
               
-              <div className="space-y-2">
+              {mode !== 'FORGOT_PASSWORD' && (
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all"
+                    disabled={isLoading || isGoogleLoading}
+                  />
+                  {mode === 'SIGN_IN' && (
+                    <div className="flex justify-end">
+                      <button 
+                        type="button"
+                        onClick={() => { setMode('FORGOT_PASSWORD'); resetForm(); }}
+                        className="text-xs text-white/40 hover:text-white/70 transition-colors"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {mode === 'SIGN_UP' && (
                 <input
                   type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all"
                   disabled={isLoading || isGoogleLoading}
                 />
-                <div className="flex justify-end">
-                  <Link 
-                    href="/reset-password" 
-                    className="text-xs text-white/40 hover:text-white/70 transition-colors"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-              </div>
+              )}
             </div>
 
             {error && (
@@ -124,43 +186,67 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+            
+            {success && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-xs text-green-200">
+                {success}
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={isLoading || isGoogleLoading}
-              className="w-full bg-white text-black font-medium rounded-xl py-3.5 text-sm hover:bg-white/90 active:scale-[0.98] transition-all flex items-center justify-center disabled:opacity-70"
+              className="w-full bg-white text-black font-medium rounded-xl py-3.5 text-sm hover:bg-white/90 active:scale-[0.98] transition-all flex items-center justify-center disabled:opacity-70 mt-4"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                mode === 'SIGN_IN' ? 'Sign In' : 
+                mode === 'SIGN_UP' ? 'Sign Up' : 'Send Reset Link'
+              }
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-white/10"></div>
-            <span className="text-xs text-white/30 font-medium">OR</span>
-            <div className="flex-1 h-px bg-white/10"></div>
-          </div>
+          {mode !== 'FORGOT_PASSWORD' && (
+            <>
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-white/10"></div>
+                <span className="text-xs text-white/30 font-medium">OR</span>
+                <div className="flex-1 h-px bg-white/10"></div>
+              </div>
 
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading || isGoogleLoading}
-            className="w-full bg-white/[0.04] border border-white/10 text-white rounded-xl py-3.5 text-sm font-medium hover:bg-white/[0.08] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <GoogleIcon />
-                Continue with Google
-              </>
-            )}
-          </button>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading || isGoogleLoading}
+                className="w-full bg-white/[0.04] border border-white/10 text-white rounded-xl py-3.5 text-sm font-medium hover:bg-white/[0.08] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {isGoogleLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    Continue with Google
+                  </>
+                )}
+              </button>
+            </>
+          )}
 
           <div className="mt-8 text-center text-sm text-white/50">
-            Don't have an account?{' '}
-            <Link href="/signup" className="text-white hover:underline">
-              Sign up
-            </Link>
+            {mode === 'SIGN_IN' ? (
+              <>
+                Don't have an account?{' '}
+                <button type="button" onClick={() => { setMode('SIGN_UP'); resetForm(); }} className="text-white hover:underline">
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <button type="button" onClick={() => { setMode('SIGN_IN'); resetForm(); }} className="text-white hover:underline">
+                  Sign In
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
