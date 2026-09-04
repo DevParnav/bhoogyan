@@ -6,6 +6,8 @@ import os from 'os';
 
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  console.log('[CHANGE_VALIDATE] request received');
   try {
     const body = await request.json();
     const { beforeFilePath, afterFilePath } = body;
@@ -34,7 +36,12 @@ export async function POST(request: NextRequest) {
     }
 
     const scriptPath = path.join(process.cwd(), 'app', 'api', 'services', 'validate_pair.py');
+    console.log('[CHANGE_VALIDATE] starting validation script');
+    const validationStart = Date.now();
     const result = await new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
       const pythonProcess = spawn('python', [scriptPath, absBefore, absAfter]);
       
       let dataString = '';
@@ -49,7 +56,10 @@ export async function POST(request: NextRequest) {
       });
 
       pythonProcess.on('close', (code) => {
+        clearTimeout(timeoutId);
         if (code !== 0) {
+          console.error('[CHANGE_VALIDATE] Validation script exited with code', code, errorString);
+
           console.error(`changeDetection.py exited with code ${code}`, errorString);
           reject(new Error(errorString || 'Validation script failed'));
           return;
@@ -71,21 +81,26 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    console.log('[CHANGE_VALIDATE] validation script completed in', Date.now() - validationStart, 'ms');
     const parsedResult = result as any;
 
     if (!parsedResult.success) {
+    console.error('[CHANGE_VALIDATE] Validation failed', parsedResult);
+
       return NextResponse.json(
         { error: parsedResult.error || 'Validation failed.' },
         { status: 400 }
       );
     }
 
+    console.log('[CHANGE_VALIDATE] completed in', Date.now() - startTime, 'ms');
     return NextResponse.json(parsedResult);
   } catch (error: any) {
-    console.error('Validation Route Error:', error);
+    console.error('[CHANGE_VALIDATE] Unexpected error:', error);
     return NextResponse.json(
       { error: error.message || 'Validation failed. Please try again.' },
       { status: 500 }
     );
   }
+  console.log('[CHANGE_VALIDATE] completed in', Date.now() - startTime, 'ms');
 }

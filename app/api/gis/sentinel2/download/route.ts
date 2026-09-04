@@ -6,6 +6,8 @@ import crypto from 'crypto';
 import os from 'os';
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+  console.log('[SENTINEL2 DOWNLOAD] request received');
   try {
     const body = await request.json();
     const aoi: GeoJsonFeature = body.aoi;
@@ -18,11 +20,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing scene selection.' }, { status: 400 });
     }
 
-    // Call service to authenticate and download via Copernicus Process API
+    console.log('[SENTINEL2 DOWNLOAD] starting download for scene', scene.id);
+    const downloadStart = Date.now();
     const result = await Sentinel2Service.downloadScene(aoi, scene);
-    
+    console.log('[SENTINEL2 DOWNLOAD] download completed in', Date.now() - downloadStart, 'ms');
     // Save to a temporary server-side location
     const tempDir = path.join(os.tmpdir(), 'bhoogyan');
+    console.log('[SENTINEL2 DOWNLOAD] writing file to', tempDir);
+    const writeStart = Date.now();
     await fs.mkdir(tempDir, { recursive: true });
     
     const safeSceneId = scene.id.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -31,12 +36,13 @@ export async function POST(request: Request) {
     const filePath = path.join(tempDir, fileName);
     
     await fs.writeFile(filePath, result.buffer);
-
+    console.log('[SENTINEL2 DOWNLOAD] file written in', Date.now() - writeStart, 'ms');
+    console.log('[SENTINEL2 DOWNLOAD] request completed in', Date.now() - startTime, 'ms');
     return NextResponse.json({
       success: true,
       file: filePath,
       metadata: result.metadata,
-      scene: scene
+      scene: scene,
     });
     
   } catch (error: any) {
