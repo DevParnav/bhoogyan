@@ -28,12 +28,13 @@ export async function askGemini(message: string): Promise<string> {
   
   const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: modelName,
-    systemInstruction
-  });
 
-  try {
+  const generateWithModel = async (modelId: string, useSystemInstruction: boolean) => {
+    const modelOptions: any = { model: modelId };
+    if (useSystemInstruction) {
+      modelOptions.systemInstruction = systemInstruction;
+    }
+    const model = genAI.getGenerativeModel(modelOptions);
     const result = await model.generateContent(message);
     
     if (!result.response) {
@@ -49,9 +50,38 @@ export async function askGemini(message: string): Promise<string> {
     if (!text) {
       throw new Error("Gemini API returned empty text.");
     }
-
+    
     return text;
+  };
+
+  try {
+    // Attempt with the primary model
+    return await generateWithModel(modelName, true);
   } catch (err: any) {
+    // If the model is not found (404), fallback to the older gemini-pro
+    if (err.message && err.message.includes('404 Not Found')) {
+      console.warn(`[GEMINI SERVICE] Model ${modelName} not found. Falling back to gemini-pro...`);
+      try {
+        // Since gemini-pro does not natively support systemInstruction, we prepend it to the prompt
+        const modelOptions = { model: 'gemini-pro' };
+        const model = genAI.getGenerativeModel(modelOptions);
+        
+        const fallbackMessage = `${systemInstruction}\n\nUser Question:\n${message}`;
+        const result = await model.generateContent(fallbackMessage);
+        
+        if (!result.response) throw new Error("Gemini API returned an empty response object.");
+        const candidates = result.response.candidates;
+        if (!candidates || candidates.length === 0) throw new Error("Gemini API returned no candidates. Blocked by safety filters.");
+        const text = result.response.text();
+        if (!text) throw new Error("Gemini API returned empty text.");
+        
+        return text;
+      } catch (fallbackErr: any) {
+        console.error("[GEMINI SERVICE ERROR during fallback]:", fallbackErr);
+        throw fallbackErr;
+      }
+    }
+    
     console.error("[GEMINI SERVICE ERROR]:", err);
     throw err;
   }
