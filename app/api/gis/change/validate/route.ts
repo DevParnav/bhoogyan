@@ -7,7 +7,7 @@ import os from 'os';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  console.log('[CHANGE_VALIDATE] request received');
+  console.log('[CHANGE_VALIDATE] request received at', new Date().toISOString());
   try {
     const body = await request.json();
     const { beforeFilePath, afterFilePath } = body;
@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
     }
 
     const scriptPath = path.join(process.cwd(), 'app', 'api', 'services', 'validate_pair.py');
-    console.log('[CHANGE_VALIDATE] starting validation script');
+  console.log('[CHANGE_VALIDATE] beforeFilePath:', beforeFilePath);
+  console.log('[CHANGE_VALIDATE] afterFilePath:', afterFilePath);
+  console.log('[CHANGE_VALIDATE] starting validation script');
+
     const validationStart = Date.now();
     const result = await new Promise((resolve, reject) => {
       const controller = new AbortController();
@@ -82,6 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('[CHANGE_VALIDATE] validation script completed in', Date.now() - validationStart, 'ms');
+  console.log('[CHANGE_VALIDATE] total request time', Date.now() - startTime, 'ms');
     const parsedResult = result as any;
 
     if (!parsedResult.success) {
