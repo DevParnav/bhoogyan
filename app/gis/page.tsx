@@ -183,8 +183,7 @@ export default function LandIntelligence() {
   };
 
   const runClassification = async () => {
-    // If testing the local model via unet_test, we ignore the AOI and use the TIFF
-    if (!selectedAoi && modelType !== 'unet_test') {
+    if (!selectedAoi) {
       setClassificationError("Please select an area on the map first.");
       return;
     }
@@ -194,52 +193,23 @@ export default function LandIntelligence() {
     setClassificationResult(null);
     
     try {
-      if (modelType === 'unet_test') {
-        // Dev test data fetch
-        const tiffResponse = await fetch('/sentinel2_test_512.tif').catch(() => null);
-        if (!tiffResponse || !tiffResponse.ok) {
-          throw new Error("Could not load test TIFF from public folder. This is a DEV ONLY feature and the test file is not deployed to production.");
-        }
-        const tiffBlob = await tiffResponse.blob();
+      const response = await fetch('/api/gis/bhuvan/lulc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedAoi),
+      });
 
-        const formData = new FormData();
-        formData.append('file', tiffBlob, 'sentinel2_test_512.tif');
+      const data = await response.json();
 
-        const response = await fetch('/api/gis/classification', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || 'Model inference failed.');
-        }
-
-        setClassificationResult({
-          source: 'Hugging Face U-Net (Test TIFF)',
-          type: 'unet',
-          raw_response: data
-        });
-
-      } else {
-        const response = await fetch('/api/gis/bhuvan/lulc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(selectedAoi),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Bhuvan LULC analysis could not be completed.');
-        }
-
-        setClassificationResult({
-          source: 'Bhuvan',
-          type: 'bhuvan',
-          raw_response: data
-        });
+      if (!response.ok) {
+        throw new Error(data.error || 'Bhuvan LULC analysis could not be completed.');
       }
+
+      setClassificationResult({
+        source: 'Bhuvan',
+        type: 'bhuvan',
+        raw_response: data
+      });
     } catch (err: any) {
       setClassificationError(err.message || 'An error occurred during analysis.');
     } finally {
@@ -346,17 +316,17 @@ export default function LandIntelligence() {
   };
 
   const runRealClassification = async () => {
-    if (!preprocessResult?.outputFile) return;
+    if (!selectedAoi || !selectedScene) return;
 
     setIsClassifying(true);
     setClassificationError(null);
     setClassificationResult(null);
 
     try {
-      const response = await fetch('/api/gis/classification', {
+      const response = await fetch('/api/gis/classification/sentinel2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filePath: preprocessResult.outputFile }),
+        body: JSON.stringify({ aoi: selectedAoi, scene: selectedScene }),
       });
 
       const data = await response.json();
@@ -365,9 +335,11 @@ export default function LandIntelligence() {
         throw new Error(data.error || 'Failed to classify land cover.');
       }
 
-      // Add a source label to differentiate in the UI
-      data.source = 'Real Sentinel-2 Inference';
-      setClassificationResult(data);
+      setClassificationResult({
+        source: data.source || 'Real Sentinel-2 + LULC U-Net',
+        type: 'unet',
+        raw_response: data
+      });
     } catch (err: any) {
       setClassificationError(err.message || 'An error occurred during classification.');
     } finally {
@@ -698,28 +670,22 @@ export default function LandIntelligence() {
                     value={modelType}
                     onChange={(e) => setModelType(e.target.value)}
                     className="w-full p-2.5 bg-background border border-accent rounded-lg text-sm text-foreground focus:outline-none focus:border-primary">
-                    <option value="bhuvan_api">Bhuvan API (Default)</option>
-                    <option value="unet_real">LULC U-Net</option>
-                    <option value="unet_test">Developer Test (Test TIFF)</option>
+                    <option value="bhuvan_api">Bhuvan API</option>
+                    <option value="unet_real">LULC U-Net (Production)</option>
                   </select>
                   {modelType === 'unet_real' && (
                     <div className="text-[10px] font-bold text-primary mt-1 bg-secondary inline-block px-2 py-0.5 rounded shadow-sm">
-                      Sentinel-2 AOI Classification
-                    </div>
-                  )}
-                  {modelType === 'unet_test' && (
-                    <div className="text-[10px] font-bold text-primary mt-1 bg-secondary inline-block px-2 py-0.5 rounded shadow-sm">
-                      Using test Sentinel-2 imagery (AOI ignored)
+                      Real-time Sentinel-2 AOI Inference
                     </div>
                   )}
                 </div>
 
-                {/* 5. Run Button */}
+                {/* 5. Execution Pipeline */}
                 {modelType !== 'unet_real' && (
                   <div className="pt-2">
                     <button
                       onClick={runClassification}
-                      disabled={(!selectedAoi && modelType !== 'unet_test') || isClassifying}
+                      disabled={!selectedAoi || isClassifying}
                       className="w-full py-3 px-4 bg-primary text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
                     >
                       {isClassifying ? 'Analyzing...' : 'Run Classification'}
@@ -733,9 +699,10 @@ export default function LandIntelligence() {
                   </div>
                 )}
                 
-                {/* 5B. Real U-Net Workflow: Prepare Sentinel-2 Data */}
+                {/* Real U-Net Workflow: Prepare Sentinel-2 Data */}
                 {selectedAoi && modelType === 'unet_real' && (
                   <div className="pt-2 border-t border-accent mt-2">
+                    <div className="text-[11px] font-bold text-text-secondary uppercase mb-3 tracking-widest">Sentinel-2 Search</div>
                     <div className="flex gap-2 mb-2">
                       <div className="flex-1">
                         <label className="text-[9px] font-bold text-text-secondary uppercase">From</label>
@@ -776,6 +743,12 @@ export default function LandIntelligence() {
                           <span className="font-bold text-foreground">{prepResult.count}</span>
                         </div>
                         
+                        {prepResult.scenes && prepResult.scenes.length === 0 && (
+                          <div className="mt-2 p-2 bg-yellow-50 text-yellow-800 text-xs rounded border border-yellow-200">
+                            No Sentinel-2 L2A scenes matched this AOI, date range, and cloud limit.
+                          </div>
+                        )}
+                        
                         {prepResult.scenes && prepResult.scenes.length > 0 && (
                           <div className="mt-2 border border-accent/50 rounded overflow-hidden max-h-48 overflow-y-auto">
                             <table className="w-full text-left text-[10px]">
@@ -807,117 +780,30 @@ export default function LandIntelligence() {
                             </table>
                           </div>
                         )}
-                      </div>
-                    )}
-                    
-                    {selectedScene && (
-                      <div className="mt-3 p-3 bg-secondary/20 border border-primary/20 rounded-lg">
-                        <div className="font-bold text-primary mb-2 text-[11px] uppercase tracking-widest">Selected Scene</div>
-                        <div className="text-[11px] text-text-secondary space-y-1 mb-3">
-                          <div className="flex justify-between"><span>Scene:</span><span className="font-medium text-foreground">{new Date(selectedScene.date).toLocaleDateString()}</span></div>
-                          <div className="flex justify-between"><span>Cloud:</span><span className="font-medium text-foreground">{Number(selectedScene.cloudCoverage).toFixed(2)}%</span></div>
-                          <div className="flex justify-between"><span>Tile:</span><span className="font-medium text-foreground">{selectedScene.tile}</span></div>
-                        </div>
                         
-                        <button
-                          onClick={downloadSentinel2Data}
-                          disabled={isDownloading}
-                          className="w-full py-2 px-4 bg-primary text-white text-[13px] font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-                        >
-                          {isDownloading ? 'Downloading...' : 'Download Sentinel-2 Data'}
-                        </button>
-                        
-                        {downloadError && (
-                          <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
-                            {downloadError}
-                          </div>
-                        )}
-                        
-                        {downloadResult && (
-                          <div className="mt-3 p-3 bg-white border border-green-200 rounded-lg text-[10px] text-text-secondary">
-                            <div className="font-bold text-green-600 mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                              Downloaded Successfully
-                            </div>
-                            <div className="space-y-1 mt-2 font-mono">
-                              <div className="flex justify-between"><span>Width:</span><span className="text-foreground">{downloadResult.metadata.width}px</span></div>
-                              <div className="flex justify-between"><span>Height:</span><span className="text-foreground">{downloadResult.metadata.height}px</span></div>
-                              <div className="flex justify-between"><span>Resolution:</span><span className="text-foreground">{downloadResult.metadata.resolution}</span></div>
-                              <div className="flex justify-between"><span>Bands:</span><span className="text-foreground">{downloadResult.metadata.bands}</span></div>
-                              <div className="flex justify-between"><span>Size:</span><span className="text-foreground">{(downloadResult.metadata.fileSize / 1024 / 1024).toFixed(2)} MB</span></div>
-                              <div className="mt-2 pt-2 border-t border-accent">
-                                <span className="block mb-1 font-sans font-semibold">Band Order:</span>
-                                <div className="flex flex-wrap gap-1">
-                                  {downloadResult.metadata.bandNames.map((b: string, i: number) => (
-                                    <span key={i} className="bg-secondary px-1 py-0.5 rounded text-[9px]">{b}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-4 pt-3 border-t border-green-200">
+                        {selectedScene && (
+                           <div className="mt-4 pt-3 border-t border-accent">
                               <button
-                                onClick={prepareUnetInput}
-                                disabled={isPreprocessing}
-                                className="w-full py-2 px-4 bg-primary text-white text-[12px] font-medium rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+                                onClick={runRealClassification}
+                                disabled={isClassifying}
+                                className="w-full py-3 px-4 bg-emerald-600 text-white text-[13px] font-bold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-md uppercase tracking-wide flex items-center justify-center gap-2"
                               >
-                                {isPreprocessing ? 'Validating 13-band GeoTIFF...' : 'Prepare U-Net Input'}
+                                {isClassifying ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Downloading & Running U-Net...
+                                  </>
+                                ) : (
+                                  'Run LULC Classification'
+                                )}
                               </button>
-                            </div>
-                            
-                            {preprocessError && (
-                              <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
-                                {preprocessError}
-                              </div>
-                            )}
-                            
-                            {preprocessResult && (
-                              <div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-[10px] text-indigo-900 font-mono">
-                                <div className="font-bold mb-2 uppercase tracking-widest text-indigo-700">Validated U-Net Input</div>
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                  <div>
-                                    <div className="text-indigo-400 text-[8px] uppercase">Input</div>
-                                    <div className="font-semibold">{preprocessResult.inputBands} bands</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-indigo-400 text-[8px] uppercase">Output</div>
-                                    <div className="font-semibold">{preprocessResult.outputChannels} channels (to Server)</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-indigo-400 text-[8px] uppercase">Resolution</div>
-                                    <div className="font-semibold">{preprocessResult.resolution}m</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-indigo-400 text-[8px] uppercase">Dimensions</div>
-                                    <div className="font-semibold">{preprocessResult.width} × {preprocessResult.height}</div>
-                                  </div>
+                              
+                              {classificationError && (
+                                <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
+                                  {classificationError}
                                 </div>
-                                <div className="mt-2 pt-2 border-t border-indigo-200">
-                                  <span className="block mb-1 text-indigo-400 text-[8px] uppercase">Indices Computed</span>
-                                  <div className="font-semibold tracking-wider">{preprocessResult.indicesComputed}</div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {preprocessResult && (
-                              <div className="mt-4 pt-3 border-t border-indigo-200">
-                                <button
-                                  onClick={runRealClassification}
-                                  disabled={isClassifying}
-                                  className="w-full py-3 px-4 bg-emerald-600 text-white text-[13px] font-bold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-md uppercase tracking-wide flex items-center justify-center gap-2"
-                                >
-                                  {isClassifying ? (
-                                    <>
-                                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                      Running Real Inference...
-                                    </>
-                                  ) : (
-                                    'Run Real Model Inference'
-                                  )}
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                              )}
+                           </div>
                         )}
                       </div>
                     )}
