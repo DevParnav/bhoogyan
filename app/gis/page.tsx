@@ -508,7 +508,6 @@ export default function LandIntelligence() {
     if (isDemo) {
       setIsCdDownloading(true);
       setCdDownloadError(null);
-      setCdStatusMessage('Running demo change detection...');
       await delay(3000);
       // Load mock validation result
       const demoRes = await fetch('/api/gis/change/demoResult');
@@ -516,7 +515,6 @@ export default function LandIntelligence() {
       setCdValidationResult(demoData.validation);
       setCdDetectResult(demoData.detection);
       setIsCdDownloading(false);
-      setCdStatusMessage('');
       return;
     }
 
