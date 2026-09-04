@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
-import { BhuvanLulcResponse } from '../api/services/bhuvanLulcAoiWiseService';
+import { predictionScenarios, type PredictionScenario } from '../../data/predictionData';
+import { riskScenarios, type RiskScenario } from '../../data/riskData';
+import { suitabilityScenarios, type SuitabilityScenario } from '../../data/suitabilityData';
+
+import { useCallback } from 'react';
 
 // Dynamically import MapComponent to prevent SSR issues with Leaflet's window dependency
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
@@ -395,6 +399,7 @@ export default function LandIntelligence() {
   };
 
   const prepareChangeDetectionData = async () => {
+    console.log('[CHANGE_VALIDATE] start');
     if (!selectedAoi || !cdBeforeSelectedScene || !cdAfterSelectedScene) return;
 
     if (cdBeforeSelectedScene.id === cdAfterSelectedScene.id) {
@@ -409,18 +414,26 @@ export default function LandIntelligence() {
 
     try {
       // 1. Download Both in Parallel
-      const [beforeRes, afterRes] = await Promise.all([
-        fetch('/api/gis/sentinel2/download', {
+        // Download BEFORE and AFTER scenes with timeout handling
+        const controllerBefore = new AbortController();
+        const timeoutBefore = setTimeout(() => controllerBefore.abort(), 30000); // 30s timeout
+        const beforePromise = fetch('/api/gis/sentinel2/download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controllerBefore.signal,
           body: JSON.stringify({ aoi: selectedAoi, scene: cdBeforeSelectedScene }),
-        }),
-        fetch('/api/gis/sentinel2/download', {
+        }).finally(() => clearTimeout(timeoutBefore));
+
+        const controllerAfter = new AbortController();
+        const timeoutAfter = setTimeout(() => controllerAfter.abort(), 30000); // 30s timeout
+        const afterPromise = fetch('/api/gis/sentinel2/download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controllerAfter.signal,
           body: JSON.stringify({ aoi: selectedAoi, scene: cdAfterSelectedScene }),
-        })
-      ]);
+        }).finally(() => clearTimeout(timeoutAfter));
+
+        const [beforeRes, afterRes] = await Promise.all([beforePromise, afterPromise]);
 
       const beforeData = await beforeRes.json();
       const afterData = await afterRes.json();
