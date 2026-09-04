@@ -15,11 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure paths are within our tmp directory
+    // Ensure paths are within the OS temporary directory
     const absBefore = path.resolve(beforeFilePath);
     const absAfter = path.resolve(afterFilePath);
 
-    const tmpDir = path.join(process.cwd(), 'tmp');
+    const tmpDir = path.join(require('os').tmpdir(), 'bhoogyan');
+    await import('fs').promises.mkdir(tmpDir, { recursive: true });
     if (!absBefore.startsWith(tmpDir) || !absAfter.startsWith(tmpDir)) {
       return NextResponse.json(
         { error: 'Invalid file paths.' },

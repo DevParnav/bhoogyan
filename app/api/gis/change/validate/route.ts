@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure paths are within our tmp directory
+    // Ensure paths are within the OS temporary directory
     const absBefore = path.resolve(beforeFilePath);
     const absAfter = path.resolve(afterFilePath);
-
-    const tmpDir = path.join(process.cwd(), 'tmp');
-    if (!absBefore.includes(tmpDir) || !absAfter.includes(tmpDir)) {
+    const tmpDir = path.join(require('os').tmpdir(), 'bhoogyan');
+    await import('fs').promises.mkdir(tmpDir, { recursive: true });
+    if (!absBefore.startsWith(tmpDir) || !absAfter.startsWith(tmpDir)) {
       return NextResponse.json(
         { error: 'Invalid file paths.' },
         { status: 400 }
@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
     }
 
     const scriptPath = path.join(process.cwd(), 'app', 'api', 'services', 'validate_pair.py');
-
     const result = await new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [scriptPath, absBefore, absAfter]);
       
@@ -44,7 +43,7 @@ export async function POST(request: NextRequest) {
 
       pythonProcess.on('close', (code) => {
         if (code !== 0) {
-          console.error(`validate_pair.py exited with code ${code}`, errorString);
+          console.error(`changeDetection.py exited with code ${code}`, errorString);
           reject(new Error(errorString || 'Validation script failed'));
           return;
         }
@@ -56,8 +55,10 @@ export async function POST(request: NextRequest) {
             const parsed = JSON.parse(jsonMatch[0]);
             resolve(parsed);
           } else {
-            reject(new Error("Could not parse validation response: " + dataString));
+            reject(new Error("Could not parse change detection response: " + dataString));
           }
+          // Cleanup temporary files
+          import('fs').promises.unlink(outputPath).catch(() => {});
         } catch (e) {
           reject(e);
         }
