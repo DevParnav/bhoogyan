@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
-import { predictionScenarios, type PredictionScenario } from '../data/predictionData';
-import { riskScenarios, type RiskScenario } from '../data/riskData';
-import { suitabilityScenarios, type SuitabilityScenario } from '../data/suitabilityData';
+import { predictionDemoDatasets, type PredictionDemoDataset, riskDemoDatasets, type RiskDemoDataset, suitabilityDemoDatasets, type SuitabilityDemoDataset } from '../data/landIntelligenceDemoData';
 
 import { useCallback } from 'react';
 
@@ -92,6 +90,43 @@ export default function LandIntelligence() {
     analysis: true,
     results: true
   });
+
+  // Demo Data States
+  const [selectedPrediction, setSelectedPrediction] = useState<PredictionDemoDataset | null>(null);
+  const [isSimulatingPrediction, setIsSimulatingPrediction] = useState(false);
+  
+  const [selectedRisk, setSelectedRisk] = useState<RiskDemoDataset | null>(null);
+  const [isSimulatingRisk, setIsSimulatingRisk] = useState(false);
+  
+  const [selectedSuitability, setSelectedSuitability] = useState<SuitabilityDemoDataset | null>(null);
+  const [isSimulatingSuitability, setIsSimulatingSuitability] = useState(false);
+  
+  const simulatePrediction = () => {
+    setIsSimulatingPrediction(true);
+    setTimeout(() => {
+      const randomData = predictionDemoDatasets[Math.floor(Math.random() * predictionDemoDatasets.length)];
+      setSelectedPrediction(randomData);
+      setIsSimulatingPrediction(false);
+    }, 1500);
+  };
+  
+  const simulateRisk = () => {
+    setIsSimulatingRisk(true);
+    setTimeout(() => {
+      const randomData = riskDemoDatasets[Math.floor(Math.random() * riskDemoDatasets.length)];
+      setSelectedRisk(randomData);
+      setIsSimulatingRisk(false);
+    }, 1500);
+  };
+  
+  const simulateSuitability = () => {
+    setIsSimulatingSuitability(true);
+    setTimeout(() => {
+      const randomData = suitabilityDemoDatasets[Math.floor(Math.random() * suitabilityDemoDatasets.length)];
+      setSelectedSuitability(randomData);
+      setIsSimulatingSuitability(false);
+    }, 1500);
+  };
   
   useEffect(() => {
     if (isFullScreenMapOpen) {
@@ -1559,14 +1594,289 @@ export default function LandIntelligence() {
               </div>
             )}
 
-{/* PLACEHOLDERS FOR OTHER TABS */}
-            {activeTab !== 'overview' && activeTab !== 'classification' && activeTab !== 'change' && (
-              <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] flex flex-col items-center justify-center min-h-[300px] text-center">
-                <div className="text-3xl mb-4 opacity-50">⚙️</div>
-                <h2 className="text-lg font-bold text-foreground mb-2">{tabs.find(t => t.id === activeTab)?.label} Module</h2>
-                <p className="text-text-secondary text-[13px] max-w-[200px] mx-auto">
-                  This workflow is in development and will connect to our Random Forest pipeline soon.
-                </p>
+{/* PREDICTION TAB */}
+            {activeTab === 'prediction' && (
+              <div className="flex flex-col gap-6">
+                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Land Cover Prediction</h2>
+                      <p className="text-xs text-text-secondary mt-1">Predict future urban expansion, agricultural shifts, and forest cover changes based on historical trends.</p>
+                    </div>
+                    <button
+                      onClick={simulatePrediction}
+                      disabled={isSimulatingPrediction || !selectedAoi}
+                      className="px-6 py-3 bg-indigo-600 text-white text-[13px] font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
+                    >
+                      {isSimulatingPrediction ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Simulating...
+                        </>
+                      ) : (
+                        'Run Prediction Model'
+                      )}
+                    </button>
+                  </div>
+                  
+                  {!selectedAoi && (
+                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                      Please draw an Area of Interest (AOI) on the map to begin.
+                    </div>
+                  )}
+
+                  {selectedPrediction && !isSimulatingPrediction && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-indigo-800 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                            Simulated Result
+                          </div>
+                          <div className="text-lg font-bold text-indigo-900">{selectedPrediction.title}</div>
+                          <div className="text-sm text-indigo-700/80 mt-1">{selectedPrediction.interpretation}</div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-indigo-200">
+                          <div className="text-[10px] uppercase font-bold text-indigo-400">Confidence</div>
+                          <div className="text-2xl font-mono font-bold text-indigo-600">{selectedPrediction.confidence}%</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Forecast Period</div>
+                          <div className="text-sm font-semibold text-foreground">{selectedPrediction.forecastPeriod}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Class</div>
+                          <div className="text-sm font-semibold text-foreground">{selectedPrediction.dominantClass}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Area Change</div>
+                          <div className={`text-sm font-semibold ${selectedPrediction.predictedAreaChangeSqKm > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {selectedPrediction.predictedAreaChangeSqKm > 0 ? '+' : ''}{selectedPrediction.predictedAreaChangeSqKm} km²
+                          </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Trend</div>
+                          <div className="text-sm font-semibold text-foreground capitalize flex items-center gap-2">
+                            {selectedPrediction.trend === 'increasing' ? '↗️' : selectedPrediction.trend === 'decreasing' ? '↘️' : '➡️'} {selectedPrediction.trend}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
+                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Predicted Land Cover Distribution</h3>
+                        <div className="space-y-4">
+                          {selectedPrediction.chartData.map(item => (
+                            <div key={item.name}>
+                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
+                                <span>{item.name}</span>
+                                <span className="font-mono">{item.value.toFixed(1)}%</span>
+                              </div>
+                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                <div className="h-full" style={{ width: `${item.value}%`, backgroundColor: item.color }}></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* RISK & ANOMALY TAB */}
+            {activeTab === 'risk' && (
+              <div className="flex flex-col gap-6">
+                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Risk & Anomaly Detection</h2>
+                      <p className="text-xs text-text-secondary mt-1">Identify ecological vulnerabilities, unauthorized deforestation, and environmental stress hotspots.</p>
+                    </div>
+                    <button
+                      onClick={simulateRisk}
+                      disabled={isSimulatingRisk || !selectedAoi}
+                      className="px-6 py-3 bg-red-600 text-white text-[13px] font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
+                    >
+                      {isSimulatingRisk ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Analyzing Risks...
+                        </>
+                      ) : (
+                        'Run Risk Assessment'
+                      )}
+                    </button>
+                  </div>
+
+                  {!selectedAoi && (
+                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                      Please draw an Area of Interest (AOI) on the map to begin.
+                    </div>
+                  )}
+
+                  {selectedRisk && !isSimulatingRisk && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className={`border p-4 rounded-xl flex items-center justify-between ${
+                        selectedRisk.severityCategory === 'Critical' ? 'bg-red-50 border-red-200' :
+                        selectedRisk.severityCategory === 'High' ? 'bg-orange-50 border-orange-200' :
+                        selectedRisk.severityCategory === 'Moderate' ? 'bg-yellow-50 border-yellow-200' :
+                        'bg-green-50 border-green-200'
+                      }`}>
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 text-foreground/70">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            Simulated Result
+                          </div>
+                          <div className="text-lg font-bold text-foreground">{selectedRisk.title}</div>
+                          <div className="text-sm text-foreground/80 mt-1">{selectedRisk.interpretation}</div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-black/10 flex flex-col items-end">
+                          <div className="text-[10px] uppercase font-bold text-foreground/50">Overall Risk Score</div>
+                          <div className={`text-3xl font-mono font-bold ${
+                            selectedRisk.overallRisk > 75 ? 'text-red-600' :
+                            selectedRisk.overallRisk > 50 ? 'text-orange-600' :
+                            selectedRisk.overallRisk > 25 ? 'text-yellow-600' :
+                            'text-green-600'
+                          }`}>{selectedRisk.overallRisk}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Severity Category</div>
+                          <div className={`text-sm font-bold ${
+                            selectedRisk.severityCategory === 'Critical' ? 'text-red-600' :
+                            selectedRisk.severityCategory === 'High' ? 'text-orange-600' :
+                            selectedRisk.severityCategory === 'Moderate' ? 'text-yellow-600' :
+                            'text-green-600'
+                          }`}>{selectedRisk.severityCategory}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Factor</div>
+                          <div className="text-sm font-semibold text-foreground">{selectedRisk.dominantRiskFactor}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Anomaly Score</div>
+                          <div className="text-sm font-mono font-bold text-foreground">{selectedRisk.anomalyScore}/100</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Hotspots Found</div>
+                          <div className="text-sm font-mono font-bold text-red-600">{selectedRisk.hotspotCount} clusters</div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
+                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Risk Factor Breakdown</h3>
+                        <div className="space-y-4">
+                          {selectedRisk.chartData.map(item => (
+                            <div key={item.name}>
+                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
+                                <span>{item.name}</span>
+                                <span className="font-mono">{item.value}/100</span>
+                              </div>
+                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                <div className="h-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.fill }}></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* SUITABILITY TAB */}
+            {activeTab === 'suitability' && (
+              <div className="flex flex-col gap-6">
+                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Land Suitability Analysis</h2>
+                      <p className="text-xs text-text-secondary mt-1">Multi-criteria analysis to determine the optimal use of land for agriculture, urban development, and conservation.</p>
+                    </div>
+                    <button
+                      onClick={simulateSuitability}
+                      disabled={isSimulatingSuitability || !selectedAoi}
+                      className="px-6 py-3 bg-emerald-600 text-white text-[13px] font-bold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
+                    >
+                      {isSimulatingSuitability ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Computing...
+                        </>
+                      ) : (
+                        'Run Suitability Analysis'
+                      )}
+                    </button>
+                  </div>
+
+                  {!selectedAoi && (
+                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                      Please draw an Area of Interest (AOI) on the map to begin.
+                    </div>
+                  )}
+
+                  {selectedSuitability && !isSimulatingSuitability && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Simulated Result
+                          </div>
+                          <div className="text-lg font-bold text-emerald-900">{selectedSuitability.title}</div>
+                          <div className="text-sm text-emerald-700/80 mt-1">{selectedSuitability.interpretation}</div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-emerald-200">
+                          <div className="text-[10px] uppercase font-bold text-emerald-600">Suitability Index</div>
+                          <div className="text-3xl font-mono font-bold text-emerald-700">{selectedSuitability.overallSuitability}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Recommended Zone</div>
+                          <div className="text-sm font-bold text-foreground">{selectedSuitability.recommendedZone}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Limiting Factor</div>
+                          <div className="text-sm font-semibold text-red-600">{selectedSuitability.limitingFactor}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Suitable Area</div>
+                          <div className="text-sm font-mono font-bold text-emerald-600">{selectedSuitability.suitableAreaSqKm} km²</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Unsuitable Area</div>
+                          <div className="text-sm font-mono font-bold text-red-500">{selectedSuitability.unsuitableAreaSqKm} km²</div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
+                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Suitability Scores by Domain</h3>
+                        <div className="space-y-4">
+                          {selectedSuitability.chartData.map(item => (
+                            <div key={item.subject}>
+                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
+                                <span>{item.subject}</span>
+                                <span className="font-mono">{item.A}/100</span>
+                              </div>
+                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${item.A}%` }}></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
