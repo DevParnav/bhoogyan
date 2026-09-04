@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
 import { spawn } from 'child_process';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,8 +21,8 @@ export async function POST(request: NextRequest) {
     const absBefore = path.resolve(beforeFilePath);
     const absAfter = path.resolve(afterFilePath);
 
-    const tmpDir = path.join(require('os').tmpdir(), 'bhoogyan');
-    await import('fs').promises.mkdir(tmpDir, { recursive: true });
+    const tmpDir = path.join(os.tmpdir(), 'bhoogyan');
+    await fs.mkdir(tmpDir, { recursive: true });
     if (!absBefore.startsWith(tmpDir) || !absAfter.startsWith(tmpDir)) {
       return NextResponse.json(
         { error: 'Invalid file paths.' },

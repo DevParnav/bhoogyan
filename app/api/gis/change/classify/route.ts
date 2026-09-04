@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const absPath = path.resolve(ndviChangePath);
-    const tmpDir = path.join(process.cwd(), 'tmp');
+    const tmpDir = path.join(os.tmpdir(), 'bhoogyan');
     if (!absPath.startsWith(tmpDir)) {
       return NextResponse.json(
         { error: 'Invalid file path.' },

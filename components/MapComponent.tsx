@@ -52,7 +52,6 @@ export default function MapComponent({ onAoiCreated, onAoiCleared }: MapComponen
       onAoiCreated(normalized);
     }
   };
-  // Original _onCreate removed; normalized version above handles AOI creation
 
   const _onDeleted = () => {
     if (onAoiCleared) {

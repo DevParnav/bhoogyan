@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+import { promises as fs } from 'fs';
+import os from 'os';
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,8 +20,8 @@ export async function POST(request: NextRequest) {
     // Ensure paths are within the OS temporary directory
     const absBefore = path.resolve(beforeFilePath);
     const absAfter = path.resolve(afterFilePath);
-    const tmpDir = path.join(require('os').tmpdir(), 'bhoogyan');
-    await import('fs').promises.mkdir(tmpDir, { recursive: true });
+    const tmpDir = path.join(os.tmpdir(), 'bhoogyan');
+    await fs.mkdir(tmpDir, { recursive: true });
     if (!absBefore.startsWith(tmpDir) || !absAfter.startsWith(tmpDir)) {
       return NextResponse.json(
         { error: 'Invalid file paths.' },
@@ -58,7 +61,6 @@ export async function POST(request: NextRequest) {
             reject(new Error("Could not parse change detection response: " + dataString));
           }
           // Cleanup temporary files
-          import('fs').promises.unlink(outputPath).catch(() => {});
         } catch (e) {
           reject(e);
         }
