@@ -54,6 +54,56 @@ export async function askGemini(message: string): Promise<string> {
     
     return text;
   } catch (err: any) {
+    if (err.message && err.message.includes('404 Not Found')) {
+      console.warn(`[GEMINI SERVICE] Model ${modelName} not found. Attempting to auto-discover available models...`);
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (response.ok) {
+          const data = await response.json();
+          const models = data.models || [];
+          
+          // Find the first model that supports generateContent
+          const validModel = models.find((m: any) => 
+            m.supportedGenerationMethods && 
+            m.supportedGenerationMethods.includes('generateContent') &&
+            m.name.includes('gemini')
+          );
+          
+          if (validModel) {
+            const discoveredModelName = validModel.name.replace('models/', '');
+            console.log(`[GEMINI SERVICE] Auto-discovered supported model: ${discoveredModelName}. Attempting generation...`);
+            
+            const fallbackOptions: any = { model: discoveredModelName };
+            // gemini-pro does not support systemInstruction, so only add it if it's not the old pro
+            if (!discoveredModelName.includes('gemini-pro') || discoveredModelName.includes('1.5')) {
+              fallbackOptions.systemInstruction = systemInstruction;
+            }
+            
+            const fbModel = genAI.getGenerativeModel(fallbackOptions);
+            let result;
+            if (!fallbackOptions.systemInstruction) {
+               const fallbackMessage = `${systemInstruction}\n\nUser Question:\n${message}`;
+               result = await fbModel.generateContent(fallbackMessage);
+            } else {
+               result = await fbModel.generateContent(message);
+            }
+            
+            if (result.response && result.response.candidates && result.response.candidates.length > 0) {
+              const text = result.response.text();
+              if (text) return text;
+            }
+          } else {
+            console.error("[GEMINI SERVICE] No valid models supporting generateContent found for this API key.");
+            console.log("Available models:", models.map((m: any) => m.name).join(', '));
+          }
+        } else {
+          console.error(`[GEMINI SERVICE] Failed to fetch models list: ${response.statusText}`);
+        }
+      } catch (discoveryErr) {
+        console.error("[GEMINI SERVICE] Auto-discovery failed:", discoveryErr);
+      }
+    }
+    
     console.error(`[GEMINI SERVICE ERROR] Model: ${modelName}`, err);
     throw err;
   }
