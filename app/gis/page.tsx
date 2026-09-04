@@ -16,6 +16,7 @@ const MapComponent = dynamic(() => import('@/components/MapComponent'), {
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 type Tab = 'overview' | 'classification' | 'change' | 'prediction' | 'risk' | 'suitability';
+const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export default function LandIntelligence() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -503,7 +504,22 @@ export default function LandIntelligence() {
       return;
     }
 
-    setIsCdDownloading(true);
+    // Demo mode fallback
+    if (isDemo) {
+      setIsCdDownloading(true);
+      setCdDownloadError(null);
+      setCdStatusMessage('Running demo change detection...');
+      await delay(3000);
+      // Load mock validation result
+      const demoRes = await fetch('/api/gis/change/demoResult');
+      const demoData = await demoRes.json();
+      setCdValidationResult(demoData.validation);
+      setCdDetectResult(demoData.detection);
+      setIsCdDownloading(false);
+      setCdStatusMessage('');
+      return;
+    }
+
     setCdDownloadError(null);
     setCdValidationResult(null);
     setCdValidationError(null);
