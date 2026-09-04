@@ -3,6 +3,7 @@ import { Sentinel2Service, GeoJsonFeature, Scene } from '../../../services/senti
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     const result = await Sentinel2Service.downloadScene(aoi, scene);
     
     // Save to a temporary server-side location
-    const tempDir = path.join(process.cwd(), 'tmp');
+    const tempDir = path.join(os.tmpdir(), 'bhoogyan');
     await fs.mkdir(tempDir, { recursive: true });
     
     const safeSceneId = scene.id.replace(/[^a-zA-Z0-9_-]/g, '_');
