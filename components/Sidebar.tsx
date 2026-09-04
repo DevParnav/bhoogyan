@@ -50,11 +50,19 @@ export default function Sidebar() {
 
   const isActive = (path: string) => pathname === path || (pathname?.startsWith(path) && path !== '/');
 
+  const getSemanticColors = (path: string) => {
+    if (path.startsWith('/bhooneeti')) return 'bg-ai-light text-ai-dark';
+    if (path.startsWith('/gis')) return 'bg-gis-light text-gis-dark';
+    if (path.startsWith('/policy')) return 'bg-policy-light text-policy-dark';
+    if (path.startsWith('/evidence')) return 'bg-evidence-light text-evidence-dark';
+    return 'bg-brand-light text-brand';
+  };
+
   const linkClass = (path: string) => 
     `block px-3 py-2.5 text-[14px] rounded-[10px] transition-colors font-medium ${
       isActive(path) 
-        ? 'bg-[var(--color-secondary)] text-primary font-semibold' 
-        : 'text-foreground hover:bg-background hover:text-primary'
+        ? `${getSemanticColors(path)} font-semibold` 
+        : 'text-foreground hover:bg-muted hover:text-brand'
     }`;
 
   return (
@@ -76,7 +84,7 @@ export default function Sidebar() {
 
       {/* Sidebar Panel */}
       <aside 
-        className="w-[256px] bg-white border border-accent/60 flex flex-col fixed z-50 shadow-[0_12px_40px_rgba(91,74,62,0.12)] rounded-[20px] overflow-hidden"
+        className="w-[256px] bg-surface border border-border flex flex-col fixed z-50 shadow-[0_12px_40px_rgba(23,50,77,0.08)] rounded-[20px] overflow-hidden"
         style={{
           top: '12px',
           bottom: '12px',
@@ -90,13 +98,13 @@ export default function Sidebar() {
       >
         <div 
           onClick={toggleLock}
-          className={`p-7 pb-6 border-b border-accent/40 shrink-0 cursor-pointer flex items-center justify-between transition-all duration-300 group ${isLocked ? 'bg-[var(--background)]' : 'hover:bg-[var(--background)]/60'}`}
+          className={`p-7 pb-6 border-b border-border shrink-0 cursor-pointer flex items-center justify-between transition-all duration-300 group ${isLocked ? 'bg-muted/30' : 'hover:bg-muted'}`}
           title={isLocked ? "Sidebar locked" : "Sidebar auto-hide"}
         >
-          <h1 className="text-[22px] font-bold text-primary group-hover:scale-[1.02] transition-transform origin-left duration-300">
+          <h1 className="text-[22px] font-bold text-brand group-hover:scale-[1.02] transition-transform origin-left duration-300">
             BhooGyan
           </h1>
-          <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isLocked ? 'bg-primary opacity-100' : 'opacity-0 bg-transparent'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isLocked ? 'bg-brand opacity-100' : 'opacity-0 bg-transparent'}`} />
         </div>
         
         <nav className="flex-1 overflow-y-auto py-6 px-5 space-y-7 custom-scrollbar">
@@ -152,7 +160,7 @@ export default function Sidebar() {
 
         </nav>
         
-        <div className="p-5 border-t border-accent/40 flex items-center justify-center shrink-0">
+        <div className="p-5 border-t border-border flex items-center justify-center shrink-0">
           <button 
             onClick={async () => {
               const { logoutUser } = await import('@/lib/auth');
@@ -163,7 +171,7 @@ export default function Sidebar() {
               }
             }}
             title="Log out"
-            className="w-[42px] h-[42px] rounded-full bg-background text-primary flex items-center justify-center font-bold text-[14px] border border-accent/60 hover:bg-[var(--color-secondary)] hover:border-accent hover:text-red-600 transition-all shadow-sm"
+            className="w-[42px] h-[42px] rounded-full bg-muted text-brand flex items-center justify-center font-bold text-[14px] border border-border hover:bg-brand-light hover:border-brand-light hover:text-red-600 transition-all shadow-sm"
           >
             PS
           </button>

@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 // Dynamically import MapComponent to prevent SSR issues with Leaflet's window dependency
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-accent/20 animate-pulse flex items-center justify-center text-text-secondary font-medium">Loading GIS Map...</div>
+  loading: () => <div className="h-full w-full bg-border/20 animate-pulse flex items-center justify-center text-text-secondary font-medium">Loading GIS Map...</div>
 });
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -653,15 +653,15 @@ export default function LandIntelligence() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-accent mb-6 flex-shrink-0">
+      <div className="border-b border-border mb-6 flex-shrink-0">
         <nav className="flex space-x-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${activeTab === tab.id
-                  ? 'border-[var(--color-primary)] text-primary'
-                  : 'border-transparent text-text-secondary hover:text-foreground hover:border-accent'
+                  ? 'border-[var(--color-gis)] text-gis'
+                  : 'border-transparent text-text-secondary hover:text-foreground hover:border-border'
                 }`}
             >
               {tab.label}
@@ -682,16 +682,16 @@ export default function LandIntelligence() {
 
           {/* Main Map Container */}
           <div className={`resizable-map-panel flex flex-col h-full z-0 w-full ${isResizing ? 'pointer-events-none' : ''}`}>
-            <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
-              <div className="p-4 border-b border-accent flex justify-between items-center bg-background/50 flex-shrink-0">
+            <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
+              <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
                 <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
                 {selectedAoi ? (
-                  <span className="text-xs bg-secondary text-primary px-2 py-1 rounded font-medium shadow-sm">AOI Selected</span>
+                  <span className="text-xs bg-gis-light text-gis px-2 py-1 rounded font-medium shadow-sm">AOI Selected</span>
                 ) : (
                   <span className="text-xs text-text-secondary px-2 py-1">Draw an AOI to begin</span>
                 )}
               </div>
-              <div className="flex-1 relative bg-background">
+              <div className="flex-1 relative bg-muted">
                 <MapComponent onAoiCreated={handleAoiCreated} onAoiCleared={handleAoiCleared} />
               </div>
             </div>
@@ -705,7 +705,7 @@ export default function LandIntelligence() {
               setIsResizing(true);
             }}
           >
-            <div className={`w-1 h-12 rounded-full transition-colors ${isResizing ? 'bg-primary' : 'bg-accent group-hover:bg-primary/50'}`} />
+            <div className={`w-1 h-12 rounded-full transition-colors ${isResizing ? 'bg-gis' : 'bg-border group-hover:bg-gis/50'}`} />
             {/* Extended hit area */}
             <div className="absolute inset-y-0 -inset-x-2 bg-transparent" />
           </div>
@@ -716,16 +716,16 @@ export default function LandIntelligence() {
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
               <>
-                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
                   <h3 className="font-semibold text-foreground mb-4">Active Monitoring Zones</h3>
                   <ul className="space-y-3 text-sm">
-                    <li className="flex justify-between items-center p-3 bg-background rounded-lg border border-accent/60">
+                    <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border">
                       <span className="font-medium text-foreground">Mulshi Buffer Zone</span>
-                      <span className="text-[10px] uppercase font-bold text-primary bg-secondary px-2 py-1 rounded">Tracking</span>
+                      <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded">Tracking</span>
                     </li>
-                    <li className="flex justify-between items-center p-3 bg-background rounded-lg border border-accent/60">
+                    <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border">
                       <span className="font-medium text-foreground">Maval Riparian</span>
-                      <span className="text-[10px] uppercase font-bold text-primary bg-secondary px-2 py-1 rounded">Tracking</span>
+                      <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded">Tracking</span>
                     </li>
                   </ul>
                 </div>
@@ -734,7 +734,7 @@ export default function LandIntelligence() {
 
             {/* CLASSIFICATION TAB */}
             {activeTab === 'classification' && (
-              <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] flex flex-col gap-5">
+              <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] flex flex-col gap-5">
                 <div>
                   <h3 className="font-semibold text-foreground mb-1">Classification Workspace</h3>
                   <p className="text-[13px] text-text-secondary">
@@ -747,9 +747,9 @@ export default function LandIntelligence() {
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">1. Area of Interest (AOI)</label>
                   {selectedAoi ? (
                     <div className="flex flex-col gap-2">
-                      <div className="p-3 bg-background border border-accent rounded-lg flex items-center justify-between">
+                      <div className="p-3 bg-muted border border-border rounded-lg flex items-center justify-between">
                         <div>
-                          <div className="text-sm font-medium text-primary flex items-center gap-2">
+                          <div className="text-sm font-medium text-gis flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
                             AOI Status: Selected
                           </div>
@@ -757,22 +757,22 @@ export default function LandIntelligence() {
                         </div>
                         <button
                           onClick={handleAoiCleared}
-                          className="text-xs font-semibold text-primary hover:text-white bg-secondary hover:bg-primary px-3 py-1.5 rounded transition-colors shadow-sm"
+                          className="text-xs font-semibold text-gis hover:text-white bg-gis-light hover:bg-gis px-3 py-1.5 rounded transition-colors shadow-sm"
                         >
                           Clear AOI
                         </button>
                       </div>
 
                       {/* Debug view */}
-                      <details className="text-[10px] text-text-secondary bg-secondary/30 p-2 rounded border border-accent/30 cursor-pointer">
+                      <details className="text-[10px] text-text-secondary bg-gis-light/30 p-2 rounded border border-border cursor-pointer">
                         <summary className="font-semibold uppercase tracking-widest">AOI GeoJSON Data (Debug)</summary>
-                        <pre className="mt-2 overflow-auto max-h-32 text-[9px] bg-white p-2 rounded border border-accent/50">
+                        <pre className="mt-2 overflow-auto max-h-32 text-[9px] bg-surface p-2 rounded border border-border">
                           {JSON.stringify(selectedAoi, null, 2)}
                         </pre>
                       </details>
                     </div>
                   ) : (
-                    <div className="p-4 bg-background border border-accent border-dashed rounded-lg text-center text-[13px] text-text-secondary">
+                    <div className="p-4 bg-muted border border-border border-dashed rounded-lg text-center text-[13px] text-text-secondary">
                       <div className="font-medium text-foreground mb-1">AOI Status: No area selected</div>
                       Draw a polygon or rectangle on the map.
                     </div>
@@ -782,7 +782,7 @@ export default function LandIntelligence() {
                 {/* 2. Data Source */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">2. Data Source</label>
-                  <select className="w-full p-2.5 bg-background border border-accent rounded-lg text-sm text-foreground focus:outline-none focus:border-primary">
+                  <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-gis">
                     <option value="bhuvan">Bhuvan LULC AOI Wise (Connected)</option>
                     <option value="bhoonidhi" disabled>Bhoonidhi Satellite Data (Not connected yet)</option>
                   </select>
@@ -791,7 +791,7 @@ export default function LandIntelligence() {
                 {/* 3. Classification Type */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">3. Classification Type</label>
-                  <select className="w-full p-2.5 bg-background border border-accent rounded-lg text-sm text-foreground focus:outline-none focus:border-primary">
+                  <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-gis">
                     <option value="lulc">Land Use / Land Cover (LULC)</option>
                   </select>
                 </div>
@@ -802,12 +802,12 @@ export default function LandIntelligence() {
                   <select
                     value={modelType}
                     onChange={(e) => setModelType(e.target.value)}
-                    className="w-full p-2.5 bg-background border border-accent rounded-lg text-sm text-foreground focus:outline-none focus:border-primary">
+                    className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-gis">
                     <option value="bhuvan_api">Bhuvan API</option>
                     <option value="unet_real">LULC U-Net (Production)</option>
                   </select>
                   {modelType === 'unet_real' && (
-                    <div className="text-[10px] font-bold text-primary mt-1 bg-secondary inline-block px-2 py-0.5 rounded shadow-sm">
+                    <div className="text-[10px] font-bold text-gis mt-1 bg-gis-light inline-block px-2 py-0.5 rounded shadow-sm">
                       Real-time Sentinel-2 AOI Inference
                     </div>
                   )}
@@ -819,13 +819,13 @@ export default function LandIntelligence() {
                     <button
                       onClick={runClassification}
                       disabled={!selectedAoi || isClassifying}
-                      className="w-full py-3 px-4 bg-primary text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+                      className="w-full py-3 px-4 bg-gis text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
                     >
                       {isClassifying ? 'Analyzing...' : 'Run Classification'}
                     </button>
 
                     {classificationError && (
-                      <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
+                      <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-xs rounded-lg">
                         {classificationError}
                       </div>
                     )}
@@ -834,40 +834,40 @@ export default function LandIntelligence() {
 
                 {/* Real U-Net Workflow: Prepare Sentinel-2 Data */}
                 {selectedAoi && modelType === 'unet_real' && (
-                  <div className="pt-2 border-t border-accent mt-2">
+                  <div className="pt-2 border-t border-border mt-2">
                     <div className="text-[11px] font-bold text-text-secondary uppercase mb-3 tracking-widest">Sentinel-2 Search</div>
                     <div className="flex gap-2 mb-2">
                       <div className="flex-1">
                         <label className="text-[9px] font-bold text-text-secondary uppercase">From</label>
-                        <input type="date" value={s2DateFrom} onChange={(e) => setS2DateFrom(e.target.value)} className="w-full text-xs p-1.5 border border-accent rounded" />
+                        <input type="date" value={s2DateFrom} onChange={(e) => setS2DateFrom(e.target.value)} className="w-full text-xs p-1.5 border border-border rounded" />
                       </div>
                       <div className="flex-1">
                         <label className="text-[9px] font-bold text-text-secondary uppercase">To</label>
-                        <input type="date" value={s2DateTo} onChange={(e) => setS2DateTo(e.target.value)} className="w-full text-xs p-1.5 border border-accent rounded" />
+                        <input type="date" value={s2DateTo} onChange={(e) => setS2DateTo(e.target.value)} className="w-full text-xs p-1.5 border border-border rounded" />
                       </div>
                       <div className="w-16">
                         <label className="text-[9px] font-bold text-text-secondary uppercase">Cloud%</label>
-                        <input type="number" value={s2MaxCloud} onChange={(e) => setS2MaxCloud(Number(e.target.value))} className="w-full text-xs p-1.5 border border-accent rounded" />
+                        <input type="number" value={s2MaxCloud} onChange={(e) => setS2MaxCloud(Number(e.target.value))} className="w-full text-xs p-1.5 border border-border rounded" />
                       </div>
                     </div>
 
                     <button
                       onClick={prepareSentinel2Data}
                       disabled={isPrepLoading}
-                      className="w-full py-2 px-4 bg-secondary text-primary text-sm font-medium rounded-xl hover:bg-primary hover:text-white transition-colors disabled:opacity-50 shadow-sm border border-primary/20"
+                      className="w-full py-2 px-4 bg-gis-light text-gis text-sm font-medium rounded-xl hover:bg-gis hover:text-white transition-colors disabled:opacity-50 shadow-sm border border-gis/20"
                     >
                       {isPrepLoading ? 'Searching Copernicus STAC...' : 'Find Sentinel-2 Scenes'}
                     </button>
 
                     {prepError && (
-                      <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
+                      <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-xs rounded-lg">
                         {prepError}
                       </div>
                     )}
 
                     {prepResult && (
-                      <div className="mt-3 p-3 bg-background border border-accent rounded-lg text-[11px] text-text-secondary">
-                        <div className="font-bold text-primary mb-2 uppercase tracking-widest flex justify-between">
+                      <div className="mt-3 p-3 bg-muted border border-border rounded-lg text-[11px] text-text-secondary">
+                        <div className="font-bold text-gis mb-2 uppercase tracking-widest flex justify-between">
                           <span>{prepResult.provider}</span>
                           <span className="bg-[#F8DED4] px-1.5 rounded text-[9px]">{prepResult.collection}</span>
                         </div>
@@ -883,26 +883,26 @@ export default function LandIntelligence() {
                         )}
 
                         {prepResult.scenes && prepResult.scenes.length > 0 && (
-                          <div className="mt-2 border border-accent/50 rounded overflow-hidden max-h-48 overflow-y-auto">
+                          <div className="mt-2 border border-border rounded overflow-hidden max-h-48 overflow-y-auto">
                             <table className="w-full text-left text-[10px]">
-                              <thead className="bg-secondary/50 uppercase">
+                              <thead className="bg-gis-light/50 uppercase">
                                 <tr>
-                                  <th className="p-1.5 border-b border-accent/50 font-semibold">Date</th>
-                                  <th className="p-1.5 border-b border-accent/50 font-semibold">Cloud</th>
-                                  <th className="p-1.5 border-b border-accent/50 font-semibold">Tile</th>
-                                  <th className="p-1.5 border-b border-accent/50 font-semibold">Select</th>
+                                  <th className="p-1.5 border-b border-border font-semibold">Date</th>
+                                  <th className="p-1.5 border-b border-border font-semibold">Cloud</th>
+                                  <th className="p-1.5 border-b border-border font-semibold">Tile</th>
+                                  <th className="p-1.5 border-b border-border font-semibold">Select</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {prepResult.scenes.map((scene: any, i: number) => (
-                                  <tr key={i} className={`border-b border-accent/20 last:border-0 hover:bg-secondary/30 ${selectedScene?.id === scene.id ? 'bg-secondary' : ''}`}>
+                                  <tr key={i} className={`border-b border-border/20 last:border-0 hover:bg-gis-light/30 ${selectedScene?.id === scene.id ? 'bg-gis-light' : ''}`}>
                                     <td className="p-1.5 whitespace-nowrap">{new Date(scene.date).toLocaleDateString()}</td>
                                     <td className="p-1.5">{Number(scene.cloudCoverage).toFixed(1)}%</td>
                                     <td className="p-1.5">{scene.tile}</td>
                                     <td className="p-1.5">
                                       <button
                                         onClick={() => setSelectedScene(scene)}
-                                        className="text-[9px] font-bold bg-primary text-white px-2 py-1 rounded hover:opacity-80"
+                                        className="text-[9px] font-bold bg-gis text-white px-2 py-1 rounded hover:opacity-80"
                                       >
                                         Select
                                       </button>
@@ -915,7 +915,7 @@ export default function LandIntelligence() {
                         )}
 
                         {selectedScene && (
-                          <div className="mt-4 pt-3 border-t border-accent">
+                          <div className="mt-4 pt-3 border-t border-border">
                             <button
                               onClick={runRealClassification}
                               disabled={isClassifying}
@@ -932,7 +932,7 @@ export default function LandIntelligence() {
                             </button>
 
                             {classificationError && (
-                              <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
+                              <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-xs rounded-lg">
                                 {classificationError}
                               </div>
                             )}
@@ -974,10 +974,10 @@ export default function LandIntelligence() {
                   const dominant = isArray ? statsArray.reduce((prev: any, current: any) => (prev.percent > current.percent) ? prev : current) : null;
 
                   return (
-                    <div className="mt-2 pt-5 border-t border-accent">
+                    <div className="mt-2 pt-5 border-t border-border">
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="font-semibold text-foreground text-sm">Analysis Results</h4>
-                        <span className="text-[10px] uppercase font-bold text-primary bg-[#F8DED4] px-2 py-1 rounded tracking-widest shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-gis bg-[#F8DED4] px-2 py-1 rounded tracking-widest shadow-sm">
                           {classificationResult.source}
                         </span>
                       </div>
@@ -985,15 +985,15 @@ export default function LandIntelligence() {
                       {isArray ? (
                         <>
                           <div className="grid grid-cols-2 gap-3 mb-5">
-                            <div className="p-3 bg-background border border-accent/60 rounded-lg">
+                            <div className="p-3 bg-muted border border-border rounded-lg">
                               <div className="text-[10px] uppercase font-bold text-text-secondary mb-1">Dominant Cover</div>
-                              <div className="text-sm font-semibold text-primary truncate">
+                              <div className="text-sm font-semibold text-gis truncate">
                                 {dominant ? dominant.name : 'Unknown'}
                               </div>
                             </div>
-                            <div className="p-3 bg-background border border-accent/60 rounded-lg">
+                            <div className="p-3 bg-muted border border-border rounded-lg">
                               <div className="text-[10px] uppercase font-bold text-text-secondary mb-1">Total Area</div>
-                              <div className="text-sm font-semibold text-primary truncate">
+                              <div className="text-sm font-semibold text-gis truncate">
                                 {totalArea ? `${Number(totalArea).toFixed(1)} sq km` : 'N/A'}
                               </div>
                             </div>
@@ -1011,7 +1011,7 @@ export default function LandIntelligence() {
                                   <span className="font-semibold text-foreground">{Number(cls.percent).toFixed(1)}%</span>
                                 </div>
                                 {/* Progress bar visual */}
-                                <div className="w-full h-1.5 bg-background rounded-full overflow-hidden">
+                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${cls.percent}%`, backgroundColor: cls.color }}></div>
                                 </div>
                               </div>
@@ -1019,8 +1019,8 @@ export default function LandIntelligence() {
                           </div>
 
                           {classificationResult.type === 'unet' && raw?.overlay && (
-                            <div className="mt-5 border border-accent/60 rounded-xl overflow-hidden shadow-sm bg-background">
-                              <div className="px-3 py-2 bg-background border-b border-accent/60 text-[10px] uppercase font-bold text-text-secondary">
+                            <div className="mt-5 border border-border rounded-xl overflow-hidden shadow-sm bg-muted">
+                              <div className="px-3 py-2 bg-muted border-b border-border text-[10px] uppercase font-bold text-text-secondary">
                                 Model Classification Overlay
                               </div>
                               <img src={`data:image/png;base64,${raw.overlay}`} alt="Classification Overlay" className="w-full h-auto object-contain" />
@@ -1028,7 +1028,7 @@ export default function LandIntelligence() {
                           )}
                         </>
                       ) : (
-                        <div className="p-4 bg-background border border-accent rounded-lg text-[11px] text-text-secondary overflow-auto max-h-60">
+                        <div className="p-4 bg-muted border border-border rounded-lg text-[11px] text-text-secondary overflow-auto max-h-60">
                           <p className="font-bold mb-2 text-foreground">API Response Data:</p>
                           <pre>{JSON.stringify(raw, null, 2)}</pre>
                         </div>
@@ -1044,7 +1044,7 @@ export default function LandIntelligence() {
               <div className="flex flex-col gap-6">
 
                 {/* Workspace Header & Controls */}
-                <div className="bg-white p-5 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] shrink-0">
+                <div className="bg-surface p-5 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] shrink-0">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Change Detection Workspace</h3>
@@ -1054,14 +1054,14 @@ export default function LandIntelligence() {
                     </div>
 
                     {/* Panel Size Control */}
-                    <div className="flex bg-background border border-accent rounded-lg p-1">
+                    <div className="flex bg-muted border border-border rounded-lg p-1">
                       {(['compact', 'standard', 'wide'] as const).map(mode => (
                         <button
                           key={mode}
                           onClick={() => setPanelMode(mode)}
                           className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded ${panelMode === mode
-                              ? 'bg-white text-primary shadow-sm border border-accent/60'
-                              : 'text-text-secondary hover:text-foreground hover:bg-white/50'
+                              ? 'bg-surface text-gis shadow-sm border border-border'
+                              : 'text-text-secondary hover:text-foreground hover:bg-surface/50'
                             }`}
                         >
                           {mode}
@@ -1072,33 +1072,33 @@ export default function LandIntelligence() {
 
                   {/* Progress Indicator */}
                   <div className="relative pt-2 pb-2">
-                    <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-accent/50 -translate-y-1/2 z-0"></div>
+                    <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-border/50 -translate-y-1/2 z-0"></div>
                     <div className="relative z-10 flex justify-between">
-                      <div className="flex flex-col items-center gap-1.5 bg-white px-2">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${selectedAoi ? 'border-[#228B22] bg-[#228B22] text-white' : 'border-primary bg-primary text-white'}`}>1</div>
-                        <span className={`text-[9px] uppercase font-bold ${selectedAoi ? 'text-[#228B22]' : 'text-primary'}`}>AOI</span>
+                      <div className="flex flex-col items-center gap-1.5 bg-surface px-2">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${selectedAoi ? 'border-[#228B22] bg-[#228B22] text-white' : 'border-gis bg-gis text-white'}`}>1</div>
+                        <span className={`text-[9px] uppercase font-bold ${selectedAoi ? 'text-[#228B22]' : 'text-gis'}`}>AOI</span>
                       </div>
-                      <div className="flex flex-col items-center gap-1.5 bg-white px-2">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${(cdBeforeSelectedScene && cdAfterSelectedScene) ? 'border-[#228B22] bg-[#228B22] text-white' : (selectedAoi ? 'border-primary bg-white text-primary' : 'border-accent bg-background text-text-secondary')}`}>2</div>
-                        <span className={`text-[9px] uppercase font-bold ${(cdBeforeSelectedScene && cdAfterSelectedScene) ? 'text-[#228B22]' : (selectedAoi ? 'text-primary' : 'text-text-secondary')}`}>Scenes</span>
+                      <div className="flex flex-col items-center gap-1.5 bg-surface px-2">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${(cdBeforeSelectedScene && cdAfterSelectedScene) ? 'border-[#228B22] bg-[#228B22] text-white' : (selectedAoi ? 'border-gis bg-surface text-gis' : 'border-border bg-muted text-text-secondary')}`}>2</div>
+                        <span className={`text-[9px] uppercase font-bold ${(cdBeforeSelectedScene && cdAfterSelectedScene) ? 'text-[#228B22]' : (selectedAoi ? 'text-gis' : 'text-text-secondary')}`}>Scenes</span>
                       </div>
-                      <div className="flex flex-col items-center gap-1.5 bg-white px-2">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${cdValidationResult?.success ? 'border-[#228B22] bg-[#228B22] text-white' : ((cdBeforeSelectedScene && cdAfterSelectedScene) ? 'border-primary bg-white text-primary' : 'border-accent bg-background text-text-secondary')}`}>3</div>
-                        <span className={`text-[9px] uppercase font-bold ${cdValidationResult?.success ? 'text-[#228B22]' : ((cdBeforeSelectedScene && cdAfterSelectedScene) ? 'text-primary' : 'text-text-secondary')}`}>Validate</span>
+                      <div className="flex flex-col items-center gap-1.5 bg-surface px-2">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${cdValidationResult?.success ? 'border-[#228B22] bg-[#228B22] text-white' : ((cdBeforeSelectedScene && cdAfterSelectedScene) ? 'border-gis bg-surface text-gis' : 'border-border bg-muted text-text-secondary')}`}>3</div>
+                        <span className={`text-[9px] uppercase font-bold ${cdValidationResult?.success ? 'text-[#228B22]' : ((cdBeforeSelectedScene && cdAfterSelectedScene) ? 'text-gis' : 'text-text-secondary')}`}>Validate</span>
                       </div>
-                      <div className="flex flex-col items-center gap-1.5 bg-white px-2">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${cdDetectResult?.success ? 'border-[#228B22] bg-[#228B22] text-white' : (cdValidationResult?.success ? 'border-primary bg-white text-primary' : 'border-accent bg-background text-text-secondary')}`}>4</div>
-                        <span className={`text-[9px] uppercase font-bold ${cdDetectResult?.success ? 'text-[#228B22]' : (cdValidationResult?.success ? 'text-primary' : 'text-text-secondary')}`}>Results</span>
+                      <div className="flex flex-col items-center gap-1.5 bg-surface px-2">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 ${cdDetectResult?.success ? 'border-[#228B22] bg-[#228B22] text-white' : (cdValidationResult?.success ? 'border-gis bg-surface text-gis' : 'border-border bg-muted text-text-secondary')}`}>4</div>
+                        <span className={`text-[9px] uppercase font-bold ${cdDetectResult?.success ? 'text-[#228B22]' : (cdValidationResult?.success ? 'text-gis' : 'text-text-secondary')}`}>Results</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* 1. AOI Selection Accordion */}
-                <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
+                <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
                   <button
                     onClick={() => toggleSection('aoi')}
-                    className="w-full flex justify-between items-center p-4 bg-background/30 hover:bg-background/80 transition-colors"
+                    className="w-full flex justify-between items-center p-4 bg-muted/30 hover:bg-muted/80 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">1. Area of Interest</span>
@@ -1108,12 +1108,12 @@ export default function LandIntelligence() {
                   </button>
 
                   {openSections.aoi && (
-                    <div className="p-5 border-t border-accent/50 bg-white">
+                    <div className="p-5 border-t border-border bg-surface">
                       {selectedAoi ? (
                         <div className="flex flex-col gap-2">
-                          <div className="p-4 bg-background border border-accent rounded-xl flex items-center justify-between">
+                          <div className="p-4 bg-muted border border-border rounded-xl flex items-center justify-between">
                             <div>
-                              <div className="text-sm font-medium text-primary flex items-center gap-2">
+                              <div className="text-sm font-medium text-gis flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                 AOI Status: Selected
                               </div>
@@ -1121,14 +1121,14 @@ export default function LandIntelligence() {
                             </div>
                             <button
                               onClick={handleAoiCleared}
-                              className="text-[11px] font-bold text-primary hover:text-white bg-secondary hover:bg-primary px-4 py-2 rounded-lg transition-colors shadow-sm uppercase tracking-wider"
+                              className="text-[11px] font-bold text-gis hover:text-white bg-gis-light hover:bg-gis px-4 py-2 rounded-lg transition-colors shadow-sm uppercase tracking-wider"
                             >
                               Clear AOI
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="p-8 bg-background border border-accent border-dashed rounded-xl text-center text-[13px] text-text-secondary">
+                        <div className="p-8 bg-muted border border-border border-dashed rounded-xl text-center text-[13px] text-text-secondary">
                           <div className="font-semibold text-foreground mb-2">AOI Status: No area selected</div>
                           Draw a polygon or rectangle on the interactive map to begin.
                         </div>
@@ -1139,70 +1139,70 @@ export default function LandIntelligence() {
 
                 {/* 2 & 3. Scene Selection Accordions */}
                 {selectedAoi && (
-                  <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
+                  <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
                     <button
                       onClick={() => toggleSection('scenes')}
-                      className="w-full flex justify-between items-center p-4 bg-background/30 hover:bg-background/80 transition-colors"
+                      className="w-full flex justify-between items-center p-4 bg-muted/30 hover:bg-muted/80 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">2. Temporal Scenes</span>
-                        {(cdBeforeSelectedScene || cdAfterSelectedScene) && <span className="text-[9px] bg-secondary text-primary px-2 py-0.5 rounded font-bold uppercase tracking-wider">{[cdBeforeSelectedScene, cdAfterSelectedScene].filter(Boolean).length}/2 Selected</span>}
+                        {(cdBeforeSelectedScene || cdAfterSelectedScene) && <span className="text-[9px] bg-gis-light text-gis px-2 py-0.5 rounded font-bold uppercase tracking-wider">{[cdBeforeSelectedScene, cdAfterSelectedScene].filter(Boolean).length}/2 Selected</span>}
                       </div>
                       <span className="text-text-secondary font-mono text-[10px]">{openSections.scenes ? '▼' : '▶'}</span>
                     </button>
 
                     {openSections.scenes && (
-                      <div className="p-5 border-t border-accent/50 space-y-8 bg-white">
+                      <div className="p-5 border-t border-border space-y-8 bg-surface">
 
-                        <div className="p-3 bg-[#faf7f5] border border-accent/60 rounded-lg text-[11px] text-[#8a7a6b] italic">
+                        <div className="p-3 bg-[#faf7f5] border border-border rounded-lg text-[11px] text-[#8a7a6b] italic">
                           <span className="font-bold not-italic">💡 Tip:</span> For accurate temporal comparison, prefer scenes with lower cloud coverage and similar seasonal acquisition conditions.
                         </div>
 
                         {/* BEFORE Scene */}
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <label className="text-[11px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gis uppercase tracking-widest flex items-center gap-2">
                               T1 (Before Scene)
                               {cdBeforeSelectedScene && <span className="w-2.5 h-2.5 rounded-full bg-[#228B22]"></span>}
                             </label>
                           </div>
 
                           {!cdBeforeSelectedScene ? (
-                            <div className="p-5 border border-accent rounded-xl bg-background/50">
+                            <div className="p-5 border border-border rounded-xl bg-muted/50">
                               <div className="flex gap-4 mb-4">
                                 <div className="flex-1">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">From Date</label>
-                                  <input type="date" value={cdBeforeDateFrom} onChange={(e) => setCdBeforeDateFrom(e.target.value)} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="date" value={cdBeforeDateFrom} onChange={(e) => setCdBeforeDateFrom(e.target.value)} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                                 <div className="flex-1">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">To Date</label>
-                                  <input type="date" value={cdBeforeDateTo} onChange={(e) => setCdBeforeDateTo(e.target.value)} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="date" value={cdBeforeDateTo} onChange={(e) => setCdBeforeDateTo(e.target.value)} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                                 <div className="w-24">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">Max Cloud%</label>
-                                  <input type="number" value={cdBeforeMaxCloud} onChange={(e) => setCdBeforeMaxCloud(Number(e.target.value))} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="number" value={cdBeforeMaxCloud} onChange={(e) => setCdBeforeMaxCloud(Number(e.target.value))} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                               </div>
 
                               <button
                                 onClick={() => searchScenes('before')}
                                 disabled={isCdBeforePrepLoading}
-                                className="w-full py-2.5 px-4 bg-white border border-accent text-primary text-[11px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#faf7f5] transition-colors disabled:opacity-50 shadow-sm"
+                                className="w-full py-2.5 px-4 bg-surface border border-border text-gis text-[11px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#faf7f5] transition-colors disabled:opacity-50 shadow-sm"
                               >
                                 {isCdBeforePrepLoading ? 'Searching Copernicus STAC...' : 'Search T1 Scenes'}
                               </button>
 
                               {cdBeforeSearchError && (
-                                <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-[11px] rounded-lg font-medium">
+                                <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-[11px] rounded-lg font-medium">
                                   {cdBeforeSearchError}
                                 </div>
                               )}
 
                               {cdBeforePrepResult && cdBeforePrepResult.scenes && cdBeforePrepResult.scenes.length > 0 && (
-                                <div className="mt-4 border border-accent rounded-lg overflow-hidden bg-white shadow-sm">
+                                <div className="mt-4 border border-border rounded-lg overflow-hidden bg-surface shadow-sm">
                                   <div className="max-h-60 overflow-y-auto">
                                     <table className="w-full text-left text-xs">
-                                      <thead className="bg-[#faf7f5] sticky top-0 border-b border-accent z-10">
+                                      <thead className="bg-[#faf7f5] sticky top-0 border-b border-border z-10">
                                         <tr>
                                           <th className="p-3 font-bold text-text-secondary uppercase text-[9px] tracking-wider">Acquisition Date</th>
                                           <th className="p-3 font-bold text-text-secondary uppercase text-[9px] tracking-wider">Cloud</th>
@@ -1212,7 +1212,7 @@ export default function LandIntelligence() {
                                       </thead>
                                       <tbody>
                                         {cdBeforePrepResult.scenes.map((scene: any) => (
-                                          <tr key={scene.id} className="border-b border-accent/30 hover:bg-[#faf7f5]">
+                                          <tr key={scene.id} className="border-b border-border hover:bg-[#faf7f5]">
                                             <td className="p-3 font-medium">{new Date(scene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                             <td className="p-3">
                                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${scene.cloudCoverage < 5 ? 'bg-green-100 text-green-700' : scene.cloudCoverage < 20 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
@@ -1228,7 +1228,7 @@ export default function LandIntelligence() {
                                                     setOpenSections(prev => ({ ...prev, scenes: false, analysis: true }));
                                                   }
                                                 }}
-                                                className="text-[10px] bg-secondary text-primary px-3 py-1.5 rounded font-bold uppercase tracking-wider hover:bg-primary hover:text-white transition-colors"
+                                                className="text-[10px] bg-gis-light text-gis px-3 py-1.5 rounded font-bold uppercase tracking-wider hover:bg-gis hover:text-white transition-colors"
                                               >
                                                 Select
                                               </button>
@@ -1252,11 +1252,11 @@ export default function LandIntelligence() {
                               <div className="grid grid-cols-2 gap-4 text-[13px]">
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Date</span>
-                                  <span className="font-semibold text-primary">{new Date(cdBeforeSelectedScene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                  <span className="font-semibold text-gis">{new Date(cdBeforeSelectedScene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                 </div>
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Cloud Cover</span>
-                                  <span className="font-semibold text-primary">{Number(cdBeforeSelectedScene.cloudCoverage).toFixed(2)}%</span>
+                                  <span className="font-semibold text-gis">{Number(cdBeforeSelectedScene.cloudCoverage).toFixed(2)}%</span>
                                 </div>
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Tile</span>
@@ -1274,59 +1274,59 @@ export default function LandIntelligence() {
                         {/* Visual temporal separator */}
                         {cdBeforeSelectedScene && cdAfterSelectedScene && (
                           <div className="flex flex-col items-center -my-2 relative z-10">
-                            <div className="h-4 border-l border-dashed border-accent"></div>
-                            <div className="bg-white border border-accent px-2 py-0.5 rounded-full text-text-secondary shadow-sm text-[10px] font-bold uppercase tracking-widest">
+                            <div className="h-4 border-l border-dashed border-border"></div>
+                            <div className="bg-surface border border-border px-2 py-0.5 rounded-full text-text-secondary shadow-sm text-[10px] font-bold uppercase tracking-widest">
                               Temporal Shift
                             </div>
-                            <div className="h-4 border-l border-dashed border-accent"></div>
+                            <div className="h-4 border-l border-dashed border-border"></div>
                           </div>
                         )}
 
                         {/* AFTER Scene */}
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <label className="text-[11px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gis uppercase tracking-widest flex items-center gap-2">
                               T2 (After Scene)
                               {cdAfterSelectedScene && <span className="w-2.5 h-2.5 rounded-full bg-[#228B22]"></span>}
                             </label>
                           </div>
 
                           {!cdAfterSelectedScene ? (
-                            <div className="p-5 border border-accent rounded-xl bg-background/50">
+                            <div className="p-5 border border-border rounded-xl bg-muted/50">
                               <div className="flex gap-4 mb-4">
                                 <div className="flex-1">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">From Date</label>
-                                  <input type="date" value={cdAfterDateFrom} onChange={(e) => setCdAfterDateFrom(e.target.value)} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="date" value={cdAfterDateFrom} onChange={(e) => setCdAfterDateFrom(e.target.value)} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                                 <div className="flex-1">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">To Date</label>
-                                  <input type="date" value={cdAfterDateTo} onChange={(e) => setCdAfterDateTo(e.target.value)} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="date" value={cdAfterDateTo} onChange={(e) => setCdAfterDateTo(e.target.value)} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                                 <div className="w-24">
                                   <label className="text-[10px] font-bold text-text-secondary uppercase mb-1.5 block">Max Cloud%</label>
-                                  <input type="number" value={cdAfterMaxCloud} onChange={(e) => setCdAfterMaxCloud(Number(e.target.value))} className="w-full text-[13px] p-2 border border-accent rounded-lg" />
+                                  <input type="number" value={cdAfterMaxCloud} onChange={(e) => setCdAfterMaxCloud(Number(e.target.value))} className="w-full text-[13px] p-2 border border-border rounded-lg" />
                                 </div>
                               </div>
 
                               <button
                                 onClick={() => searchScenes('after')}
                                 disabled={isCdAfterPrepLoading}
-                                className="w-full py-2.5 px-4 bg-white border border-accent text-primary text-[11px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#faf7f5] transition-colors disabled:opacity-50 shadow-sm"
+                                className="w-full py-2.5 px-4 bg-surface border border-border text-gis text-[11px] font-bold uppercase tracking-wider rounded-lg hover:bg-[#faf7f5] transition-colors disabled:opacity-50 shadow-sm"
                               >
                                 {isCdAfterPrepLoading ? 'Searching Copernicus STAC...' : 'Search T2 Scenes'}
                               </button>
 
                               {cdAfterSearchError && (
-                                <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-[11px] rounded-lg font-medium">
+                                <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-[11px] rounded-lg font-medium">
                                   {cdAfterSearchError}
                                 </div>
                               )}
 
                               {cdAfterPrepResult && cdAfterPrepResult.scenes && cdAfterPrepResult.scenes.length > 0 && (
-                                <div className="mt-4 border border-accent rounded-lg overflow-hidden bg-white shadow-sm">
+                                <div className="mt-4 border border-border rounded-lg overflow-hidden bg-surface shadow-sm">
                                   <div className="max-h-60 overflow-y-auto">
                                     <table className="w-full text-left text-xs">
-                                      <thead className="bg-[#faf7f5] sticky top-0 border-b border-accent z-10">
+                                      <thead className="bg-[#faf7f5] sticky top-0 border-b border-border z-10">
                                         <tr>
                                           <th className="p-3 font-bold text-text-secondary uppercase text-[9px] tracking-wider">Acquisition Date</th>
                                           <th className="p-3 font-bold text-text-secondary uppercase text-[9px] tracking-wider">Cloud</th>
@@ -1336,7 +1336,7 @@ export default function LandIntelligence() {
                                       </thead>
                                       <tbody>
                                         {cdAfterPrepResult.scenes.map((scene: any) => (
-                                          <tr key={scene.id} className="border-b border-accent/30 hover:bg-[#faf7f5]">
+                                          <tr key={scene.id} className="border-b border-border hover:bg-[#faf7f5]">
                                             <td className="p-3 font-medium">{new Date(scene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                             <td className="p-3">
                                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${scene.cloudCoverage < 5 ? 'bg-green-100 text-green-700' : scene.cloudCoverage < 20 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
@@ -1352,7 +1352,7 @@ export default function LandIntelligence() {
                                                     setOpenSections(prev => ({ ...prev, scenes: false, analysis: true }));
                                                   }
                                                 }}
-                                                className="text-[10px] bg-secondary text-primary px-3 py-1.5 rounded font-bold uppercase tracking-wider hover:bg-primary hover:text-white transition-colors"
+                                                className="text-[10px] bg-gis-light text-gis px-3 py-1.5 rounded font-bold uppercase tracking-wider hover:bg-gis hover:text-white transition-colors"
                                               >
                                                 Select
                                               </button>
@@ -1376,11 +1376,11 @@ export default function LandIntelligence() {
                               <div className="grid grid-cols-2 gap-4 text-[13px]">
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Date</span>
-                                  <span className="font-semibold text-primary">{new Date(cdAfterSelectedScene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                  <span className="font-semibold text-gis">{new Date(cdAfterSelectedScene.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                 </div>
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Cloud Cover</span>
-                                  <span className="font-semibold text-primary">{Number(cdAfterSelectedScene.cloudCoverage).toFixed(2)}%</span>
+                                  <span className="font-semibold text-gis">{Number(cdAfterSelectedScene.cloudCoverage).toFixed(2)}%</span>
                                 </div>
                                 <div>
                                   <span className="block text-[9px] uppercase font-bold text-text-secondary mb-1 tracking-wider">Tile</span>
@@ -1401,10 +1401,10 @@ export default function LandIntelligence() {
 
                 {/* 4. Prepare & Validate Accordion */}
                 {selectedAoi && cdBeforeSelectedScene && cdAfterSelectedScene && (
-                  <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
+                  <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
                     <button
                       onClick={() => toggleSection('analysis')}
-                      className="w-full flex justify-between items-center p-4 bg-background/30 hover:bg-background/80 transition-colors"
+                      className="w-full flex justify-between items-center p-4 bg-muted/30 hover:bg-muted/80 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">3. Validate & Process</span>
@@ -1414,11 +1414,11 @@ export default function LandIntelligence() {
                     </button>
 
                     {openSections.analysis && (
-                      <div className="p-5 border-t border-accent/50 bg-white">
+                      <div className="p-5 border-t border-border bg-surface">
                         <button
                           onClick={prepareChangeDetectionData}
                           disabled={isCdDownloading || isCdValidating}
-                          className="w-full py-3.5 px-4 bg-primary text-white text-[13px] font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm uppercase tracking-wider flex items-center justify-center gap-3"
+                          className="w-full py-3.5 px-4 bg-gis text-white text-[13px] font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm uppercase tracking-wider flex items-center justify-center gap-3"
                         >
                           {(isCdDownloading || isCdValidating) ? (
                             <>
@@ -1431,7 +1431,7 @@ export default function LandIntelligence() {
                         </button>
 
                         {cdDownloadError && (
-                          <div className="mt-4 p-4 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg font-medium">
+                          <div className="mt-4 p-4 bg-[#F8DED4]/50 border border-[#F8DED4] text-gis text-xs rounded-lg font-medium">
                             {cdDownloadError}
                           </div>
                         )}
@@ -1450,15 +1450,15 @@ export default function LandIntelligence() {
                               <span className="font-bold text-[13px] uppercase tracking-wider">Rasters Compatible</span>
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-[11px] text-emerald-900 font-mono">
-                              <div className="bg-white p-3 rounded-lg shadow-sm border border-emerald-100">
+                              <div className="bg-surface p-3 rounded-lg shadow-sm border border-emerald-100">
                                 <span className="text-emerald-500 text-[9px] font-bold uppercase block mb-1">Grid Dimensions</span>
                                 {cdValidationResult.width} × {cdValidationResult.height}
                               </div>
-                              <div className="bg-white p-3 rounded-lg shadow-sm border border-emerald-100">
+                              <div className="bg-surface p-3 rounded-lg shadow-sm border border-emerald-100">
                                 <span className="text-emerald-500 text-[9px] font-bold uppercase block mb-1">CRS</span>
                                 {cdValidationResult.crs}
                               </div>
-                              <div className="col-span-2 bg-white p-3 rounded-lg shadow-sm border border-emerald-100">
+                              <div className="col-span-2 bg-surface p-3 rounded-lg shadow-sm border border-emerald-100">
                                 <span className="text-emerald-500 text-[9px] font-bold uppercase block mb-1">Format</span>
                                 13 Bands • Float32
                               </div>
@@ -1475,10 +1475,10 @@ export default function LandIntelligence() {
 
                 {/* 5. Spectral Change Detection & Classification Accordion */}
                 {cdValidationResult && cdValidationResult.success && (
-                  <div className="bg-white rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
+                  <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
                     <button
                       onClick={() => toggleSection('results')}
-                      className="w-full flex justify-between items-center p-4 bg-background/30 hover:bg-background/80 transition-colors"
+                      className="w-full flex justify-between items-center p-4 bg-muted/30 hover:bg-muted/80 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">4. Results & Statistics</span>
@@ -1488,7 +1488,7 @@ export default function LandIntelligence() {
                     </button>
 
                     {openSections.results && (
-                      <div className="p-5 border-t border-accent/50 bg-white space-y-6">
+                      <div className="p-5 border-t border-border bg-surface space-y-6">
 
                         <button
                           onClick={calculateNdviChange}
@@ -1512,8 +1512,8 @@ export default function LandIntelligence() {
                         )}
 
                         {cdDetectResult && cdDetectResult.success && (
-                          <div className="p-6 bg-white border border-[#e2d5c8] rounded-xl shadow-[0_4px_20px_rgba(138,122,107,0.06)]">
-                            <div className="flex items-center gap-3 text-[#8a7a6b] mb-5 border-b border-accent pb-4">
+                          <div className="p-6 bg-surface border border-[#e2d5c8] rounded-xl shadow-[0_4px_20px_rgba(138,122,107,0.06)]">
+                            <div className="flex items-center gap-3 text-[#8a7a6b] mb-5 border-b border-border pb-4">
                               <div className="w-8 h-8 rounded-lg bg-[#faf7f5] flex items-center justify-center border border-[#e2d5c8] text-lg">📊</div>
                               <span className="font-bold text-[13px] uppercase tracking-widest text-foreground">Spectral Change Results</span>
                             </div>
@@ -1521,7 +1521,7 @@ export default function LandIntelligence() {
                             <div className="grid grid-cols-2 gap-5 mb-6">
                               <div>
                                 <div className="text-[10px] uppercase font-bold text-text-secondary mb-1.5 tracking-wider">Valid Pixels</div>
-                                <div className="text-[13px] font-mono font-bold text-primary bg-background p-2.5 rounded-lg border border-accent">
+                                <div className="text-[13px] font-mono font-bold text-gis bg-muted p-2.5 rounded-lg border border-border">
                                   {cdDetectResult.validPixels.toLocaleString()}
                                 </div>
                               </div>
@@ -1535,32 +1535,32 @@ export default function LandIntelligence() {
                               <div className="col-span-2 mt-2">
                                 <div className="text-[10px] uppercase font-bold text-text-secondary mb-2.5 tracking-wider">NDVI Change Statistics</div>
                                 <div className="grid grid-cols-3 gap-3">
-                                  <div className="bg-background p-3 rounded-lg border border-accent text-center">
+                                  <div className="bg-muted p-3 rounded-lg border border-border text-center">
                                     <span className="text-[9px] font-bold uppercase text-text-secondary block mb-1">Min</span>
-                                    <span className="font-mono text-xs font-bold text-primary">{Number(cdDetectResult.minChange).toFixed(3)}</span>
+                                    <span className="font-mono text-xs font-bold text-gis">{Number(cdDetectResult.minChange).toFixed(3)}</span>
                                   </div>
-                                  <div className="bg-background p-3 rounded-lg border border-accent text-center">
+                                  <div className="bg-muted p-3 rounded-lg border border-border text-center">
                                     <span className="text-[9px] font-bold uppercase text-text-secondary block mb-1">Mean</span>
-                                    <span className="font-mono text-xs font-bold text-primary">{Number(cdDetectResult.meanChange).toFixed(3)}</span>
+                                    <span className="font-mono text-xs font-bold text-gis">{Number(cdDetectResult.meanChange).toFixed(3)}</span>
                                   </div>
-                                  <div className="bg-background p-3 rounded-lg border border-accent text-center">
+                                  <div className="bg-muted p-3 rounded-lg border border-border text-center">
                                     <span className="text-[9px] font-bold uppercase text-text-secondary block mb-1">Max</span>
-                                    <span className="font-mono text-xs font-bold text-primary">{Number(cdDetectResult.maxChange).toFixed(3)}</span>
+                                    <span className="font-mono text-xs font-bold text-gis">{Number(cdDetectResult.maxChange).toFixed(3)}</span>
                                   </div>
                                 </div>
-                                <div className="mt-4 text-[11px] text-text-secondary bg-[#faf7f5] p-3 rounded-lg border border-accent/60 leading-relaxed">
+                                <div className="mt-4 text-[11px] text-text-secondary bg-[#faf7f5] p-3 rounded-lg border border-border leading-relaxed">
                                   Positive values indicate vegetation increase. Negative values indicate vegetation decrease. Cloud and shadow pixels were explicitly set to NaN based on SCL.
                                 </div>
                               </div>
                             </div>
 
                             {/* 6. Classify Change */}
-                            <div className="pt-6 border-t border-accent">
-                              <h4 className="font-bold text-[11px] text-primary uppercase tracking-widest mb-4">Change Map & Area Statistics</h4>
+                            <div className="pt-6 border-t border-border">
+                              <h4 className="font-bold text-[11px] text-gis uppercase tracking-widest mb-4">Change Map & Area Statistics</h4>
                               <div className="flex flex-col gap-4 mb-5">
                                 <div>
                                   <label className="text-[10px] font-bold text-text-secondary uppercase block mb-2 tracking-wider">Threshold (±)</label>
-                                  <div className="flex items-center gap-4 bg-background p-3 rounded-lg border border-accent">
+                                  <div className="flex items-center gap-4 bg-muted p-3 rounded-lg border border-border">
                                     <input
                                       type="range"
                                       min="0.05"
@@ -1570,13 +1570,13 @@ export default function LandIntelligence() {
                                       onChange={(e) => setChangeThreshold(Number(e.target.value))}
                                       className="w-full accent-primary"
                                     />
-                                    <span className="text-[13px] font-mono font-bold text-primary w-12 text-right">{changeThreshold.toFixed(2)}</span>
+                                    <span className="text-[13px] font-mono font-bold text-gis w-12 text-right">{changeThreshold.toFixed(2)}</span>
                                   </div>
                                 </div>
                                 <button
                                   onClick={classifyChangeMap}
                                   disabled={isClassifyingChange}
-                                  className="w-full py-3 px-4 bg-primary text-white text-[11px] font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm uppercase tracking-widest flex items-center justify-center gap-2"
+                                  className="w-full py-3 px-4 bg-gis text-white text-[11px] font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm uppercase tracking-widest flex items-center justify-center gap-2"
                                 >
                                   {isClassifyingChange ? 'Classifying...' : 'Classify Change'}
                                 </button>
@@ -1589,14 +1589,14 @@ export default function LandIntelligence() {
                               )}
 
                               {changeClassifyResult && changeClassifyResult.success && (
-                                <div className="mt-6 border border-accent/60 rounded-xl overflow-hidden shadow-sm bg-background">
-                                  <div className="px-4 py-3 bg-background border-b border-accent/60 flex justify-between items-center">
+                                <div className="mt-6 border border-border rounded-xl overflow-hidden shadow-sm bg-muted">
+                                  <div className="px-4 py-3 bg-muted border-b border-border flex justify-between items-center">
                                     <span className="text-[10px] uppercase font-bold text-text-secondary tracking-widest">Categorical Change Map</span>
                                     <div className="flex items-center gap-3">
-                                      <span className="text-[9px] bg-secondary text-primary px-2.5 py-1 rounded font-bold uppercase tracking-wider">Threshold: ±{changeClassifyResult.threshold}</span>
+                                      <span className="text-[9px] bg-gis-light text-gis px-2.5 py-1 rounded font-bold uppercase tracking-wider">Threshold: ±{changeClassifyResult.threshold}</span>
                                       <button
                                         onClick={() => setIsFullScreenMapOpen(true)}
-                                        className="text-[9px] bg-white border border-accent text-primary px-3 py-1 rounded font-bold uppercase tracking-wider hover:bg-[#faf7f5] hover:border-primary transition-colors shadow-sm flex items-center gap-1"
+                                        className="text-[9px] bg-surface border border-border text-gis px-3 py-1 rounded font-bold uppercase tracking-wider hover:bg-[#faf7f5] hover:border-gis transition-colors shadow-sm flex items-center gap-1"
                                       >
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
                                         View Full Screen
@@ -1606,7 +1606,7 @@ export default function LandIntelligence() {
 
                                   <div className="flex flex-col xl:flex-row gap-5 p-5">
                                     <div className="flex-1">
-                                      <div className="aspect-square w-full bg-white rounded-xl border border-accent overflow-hidden relative flex items-center justify-center p-2 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
+                                      <div className="aspect-square w-full bg-surface rounded-xl border border-border overflow-hidden relative flex items-center justify-center p-2 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
                                         {changeClassifyResult.previewBase64 ? (
                                           <img
                                             src={`data:image/png;base64,${changeClassifyResult.previewBase64}`}
@@ -1626,32 +1626,32 @@ export default function LandIntelligence() {
                                     </div>
 
                                     <div className="flex-1 space-y-4">
-                                      <div className="p-4 bg-white border border-accent rounded-xl shadow-sm">
+                                      <div className="p-4 bg-surface border border-border rounded-xl shadow-sm">
                                         <div className="text-[10px] font-bold text-text-secondary uppercase mb-3 tracking-wider">Area Statistics (Valid)</div>
                                         <div className="space-y-3 text-[13px]">
-                                          <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                                          <div className="flex justify-between items-center pb-2 border-b border-border">
                                             <span className="flex items-center gap-2 font-medium text-foreground"><span className="w-2.5 h-2.5 rounded-full bg-[#228B22] shadow-sm"></span> Increase</span>
-                                            <span className="font-mono font-bold text-primary">{Number(changeClassifyResult.increaseAreaM2 / 10000).toFixed(2)} ha</span>
+                                            <span className="font-mono font-bold text-gis">{Number(changeClassifyResult.increaseAreaM2 / 10000).toFixed(2)} ha</span>
                                           </div>
-                                          <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                                          <div className="flex justify-between items-center pb-2 border-b border-border">
                                             <span className="flex items-center gap-2 font-medium text-foreground"><span className="w-2.5 h-2.5 rounded-full bg-[#DC143C] shadow-sm"></span> Decrease</span>
-                                            <span className="font-mono font-bold text-primary">{Number(changeClassifyResult.decreaseAreaM2 / 10000).toFixed(2)} ha</span>
+                                            <span className="font-mono font-bold text-gis">{Number(changeClassifyResult.decreaseAreaM2 / 10000).toFixed(2)} ha</span>
                                           </div>
-                                          <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                                          <div className="flex justify-between items-center pb-2 border-b border-border">
                                             <span className="flex items-center gap-2 font-medium text-foreground"><span className="w-2.5 h-2.5 border border-gray-300 rounded-full"></span> Unchanged</span>
-                                            <span className="font-mono font-bold text-primary">{Number(changeClassifyResult.unchangedAreaM2 / 10000).toFixed(2)} ha</span>
+                                            <span className="font-mono font-bold text-gis">{Number(changeClassifyResult.unchangedAreaM2 / 10000).toFixed(2)} ha</span>
                                           </div>
-                                          <div className="flex justify-between items-center pt-1 font-bold text-primary text-[14px]">
+                                          <div className="flex justify-between items-center pt-1 font-bold text-gis text-[14px]">
                                             <span>Total Changed</span>
                                             <span className="font-mono">{Number(changeClassifyResult.changedAreaM2 / 10000).toFixed(2)} ha</span>
                                           </div>
                                         </div>
                                       </div>
 
-                                      <div className="p-4 bg-white border border-accent rounded-xl shadow-sm">
+                                      <div className="p-4 bg-surface border border-border rounded-xl shadow-sm">
                                         <div className="flex justify-between items-center mb-2">
                                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Change Proportion</div>
-                                          <div className="text-base font-bold text-primary font-mono">{Number(changeClassifyResult.changedAreaPercent).toFixed(1)}%</div>
+                                          <div className="text-base font-bold text-gis font-mono">{Number(changeClassifyResult.changedAreaPercent).toFixed(1)}%</div>
                                         </div>
                                         <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden flex shadow-inner">
                                           <div className="h-full bg-[#228B22]" style={{ width: `${(changeClassifyResult.increaseAreaM2 / changeClassifyResult.totalValidAreaM2) * 100}%` }}></div>
@@ -1681,8 +1681,8 @@ export default function LandIntelligence() {
             {/* PREDICTION TAB */}
             {activeTab === 'prediction' && (
               <div className="flex flex-col gap-6">
-                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
-                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
                     <div>
                       <h2 className="text-lg font-bold text-foreground">Land Cover Prediction</h2>
                       <p className="text-xs text-text-secondary mt-1">Predict future urban expansion, agricultural shifts, and forest cover changes based on historical trends.</p>
@@ -1704,7 +1704,7 @@ export default function LandIntelligence() {
                   </div>
 
                   {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
                       Please draw an Area of Interest (AOI) on the map to begin.
                     </div>
                   )}
@@ -1727,21 +1727,21 @@ export default function LandIntelligence() {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Forecast Period</div>
                           <div className="text-sm font-semibold text-foreground">{selectedPrediction.forecastPeriod}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Class</div>
                           <div className="text-sm font-semibold text-foreground">{selectedPrediction.dominantClass}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Area Change</div>
                           <div className={`text-sm font-semibold ${selectedPrediction.predictedAreaChangeSqKm > 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {selectedPrediction.predictedAreaChangeSqKm > 0 ? '+' : ''}{selectedPrediction.predictedAreaChangeSqKm} km²
                           </div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Trend</div>
                           <div className="text-sm font-semibold text-foreground capitalize flex items-center gap-2">
                             {selectedPrediction.trend === 'increasing' ? '↗️' : selectedPrediction.trend === 'decreasing' ? '↘️' : '➡️'} {selectedPrediction.trend}
@@ -1749,8 +1749,8 @@ export default function LandIntelligence() {
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
-                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Predicted Land Cover Distribution</h3>
+                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
+                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Predicted Land Cover Distribution</h3>
                         <div className="space-y-4">
                           {selectedPrediction.chartData.map(item => (
                             <div key={item.name}>
@@ -1774,8 +1774,8 @@ export default function LandIntelligence() {
             {/* RISK & ANOMALY TAB */}
             {activeTab === 'risk' && (
               <div className="flex flex-col gap-6">
-                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
-                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
                     <div>
                       <h2 className="text-lg font-bold text-foreground">Risk & Anomaly Detection</h2>
                       <p className="text-xs text-text-secondary mt-1">Identify ecological vulnerabilities, unauthorized deforestation, and environmental stress hotspots.</p>
@@ -1797,7 +1797,7 @@ export default function LandIntelligence() {
                   </div>
 
                   {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
                       Please draw an Area of Interest (AOI) on the map to begin.
                     </div>
                   )}
@@ -1828,7 +1828,7 @@ export default function LandIntelligence() {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Severity Category</div>
                           <div className={`text-sm font-bold ${selectedRisk.severityCategory === 'Critical' ? 'text-red-600' :
                               selectedRisk.severityCategory === 'High' ? 'text-orange-600' :
@@ -1836,22 +1836,22 @@ export default function LandIntelligence() {
                                   'text-green-600'
                             }`}>{selectedRisk.severityCategory}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Factor</div>
                           <div className="text-sm font-semibold text-foreground">{selectedRisk.dominantRiskFactor}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Anomaly Score</div>
                           <div className="text-sm font-mono font-bold text-foreground">{selectedRisk.anomalyScore}/100</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Hotspots Found</div>
                           <div className="text-sm font-mono font-bold text-red-600">{selectedRisk.hotspotCount} clusters</div>
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
-                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Risk Factor Breakdown</h3>
+                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
+                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Risk Factor Breakdown</h3>
                         <div className="space-y-4">
                           {selectedRisk.chartData.map(item => (
                             <div key={item.name}>
@@ -1875,8 +1875,8 @@ export default function LandIntelligence() {
             {/* SUITABILITY TAB */}
             {activeTab === 'suitability' && (
               <div className="flex flex-col gap-6">
-                <div className="bg-white p-6 rounded-xl border border-accent shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
-                  <div className="flex justify-between items-center mb-6 border-b border-accent/40 pb-4">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
                     <div>
                       <h2 className="text-lg font-bold text-foreground">Land Suitability Analysis</h2>
                       <p className="text-xs text-text-secondary mt-1">Multi-criteria analysis to determine the optimal use of land for agriculture, urban development, and conservation.</p>
@@ -1898,7 +1898,7 @@ export default function LandIntelligence() {
                   </div>
 
                   {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-accent/10 rounded-xl border border-dashed border-accent">
+                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
                       Please draw an Area of Interest (AOI) on the map to begin.
                     </div>
                   )}
@@ -1921,26 +1921,26 @@ export default function LandIntelligence() {
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Recommended Zone</div>
                           <div className="text-sm font-bold text-foreground">{selectedSuitability.recommendedZone}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Limiting Factor</div>
                           <div className="text-sm font-semibold text-red-600">{selectedSuitability.limitingFactor}</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Suitable Area</div>
                           <div className="text-sm font-mono font-bold text-emerald-600">{selectedSuitability.suitableAreaSqKm} km²</div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-accent shadow-sm">
+                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Unsuitable Area</div>
                           <div className="text-sm font-mono font-bold text-red-500">{selectedSuitability.unsuitableAreaSqKm} km²</div>
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-xl border border-accent shadow-sm">
-                        <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6 border-b border-accent/40 pb-2">Suitability Scores by Domain</h3>
+                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
+                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Suitability Scores by Domain</h3>
                         <div className="space-y-4">
                           {selectedSuitability.chartData.map(item => (
                             <div key={item.subject}>
@@ -1979,11 +1979,11 @@ export default function LandIntelligence() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-5 border-b border-[#e2d5c8] bg-white">
+            <div className="flex justify-between items-center p-5 border-b border-[#e2d5c8] bg-surface">
               <h2 id="modal-title" className="text-lg font-bold text-foreground uppercase tracking-widest">Categorical Change Analysis</h2>
               <button
                 onClick={() => setIsFullScreenMapOpen(false)}
-                className="text-text-secondary hover:text-foreground bg-secondary px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-colors border border-transparent hover:border-accent"
+                className="text-text-secondary hover:text-foreground bg-gis-light px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-colors border border-transparent hover:border-border"
                 aria-label="Close modal"
               >
                 Close
@@ -1993,12 +1993,12 @@ export default function LandIntelligence() {
             {/* Modal Body */}
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
               {/* Map Container - scrolls independently if image is huge, but object-contain is better for fit */}
-              <div className="flex-1 bg-white p-6 flex items-center justify-center relative overflow-auto border-r border-[#e2d5c8]">
+              <div className="flex-1 bg-surface p-6 flex items-center justify-center relative overflow-auto border-r border-[#e2d5c8]">
                 {changeClassifyResult.previewBase64 ? (
                   <img
                     src={`data:image/png;base64,${changeClassifyResult.previewBase64}`}
                     alt="Change Preview Full Screen"
-                    className="max-w-full max-h-[70vh] object-contain drop-shadow-xl border border-accent/30 rounded-xl"
+                    className="max-w-full max-h-[70vh] object-contain drop-shadow-xl border border-border rounded-xl"
                   />
                 ) : (
                   <span className="text-sm text-text-secondary font-medium">No Preview Generated</span>
@@ -2011,7 +2011,7 @@ export default function LandIntelligence() {
                 {/* Legend */}
                 <div>
                   <h3 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-3">Legend</h3>
-                  <div className="space-y-3 bg-white p-4 rounded-xl border border-[#e2d5c8] shadow-sm">
+                  <div className="space-y-3 bg-surface p-4 rounded-xl border border-[#e2d5c8] shadow-sm">
                     <div className="flex items-center gap-3 text-xs font-bold text-foreground">
                       <span className="w-4 h-4 rounded-full bg-[#228B22] shadow-inner border border-black/10"></span> VEGETATION INCREASE
                     </div>
@@ -2030,34 +2030,34 @@ export default function LandIntelligence() {
                 {/* Statistics */}
                 <div>
                   <h3 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-3">Analysis Information</h3>
-                  <div className="bg-white p-4 rounded-xl border border-[#e2d5c8] shadow-sm space-y-3 text-sm">
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                  <div className="bg-surface p-4 rounded-xl border border-[#e2d5c8] shadow-sm space-y-3 text-sm">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium">Threshold</span>
-                      <span className="font-mono font-bold text-primary">±{changeClassifyResult.threshold}</span>
+                      <span className="font-mono font-bold text-gis">±{changeClassifyResult.threshold}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium">Vegetation Increase</span>
                       <span className="font-mono font-bold text-[#228B22]">{Number(changeClassifyResult.increaseAreaM2 / 10000).toFixed(2)} ha</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium">Vegetation Decrease</span>
                       <span className="font-mono font-bold text-[#DC143C]">{Number(changeClassifyResult.decreaseAreaM2 / 10000).toFixed(2)} ha</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium">No Significant Change</span>
                       <span className="font-mono font-bold text-foreground">{Number(changeClassifyResult.unchangedAreaM2 / 10000).toFixed(2)} ha</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium text-xs">Total Changed Area</span>
-                      <span className="font-mono font-bold text-primary">{Number(changeClassifyResult.changedAreaM2 / 10000).toFixed(2)} ha</span>
+                      <span className="font-mono font-bold text-gis">{Number(changeClassifyResult.changedAreaM2 / 10000).toFixed(2)} ha</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                    <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-text-secondary font-medium text-xs">Changed Area (%)</span>
-                      <span className="font-mono font-bold text-primary">{Number(changeClassifyResult.changedAreaPercent).toFixed(2)}%</span>
+                      <span className="font-mono font-bold text-gis">{Number(changeClassifyResult.changedAreaPercent).toFixed(2)}%</span>
                     </div>
                     {cdDetectResult && (
                       <>
-                        <div className="flex justify-between items-center pb-2 border-b border-accent/40">
+                        <div className="flex justify-between items-center pb-2 border-b border-border">
                           <span className="text-text-secondary font-medium text-xs">Valid Area</span>
                           <span className="font-mono font-bold text-foreground">{Number(changeClassifyResult.totalValidAreaM2 / 10000).toFixed(2)} ha</span>
                         </div>
@@ -2073,7 +2073,7 @@ export default function LandIntelligence() {
                 {/* Provenance */}
                 <div>
                   <h3 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-3">Analysis Provenance</h3>
-                  <div className="bg-white p-4 rounded-xl border border-[#e2d5c8] shadow-sm space-y-2 text-xs">
+                  <div className="bg-surface p-4 rounded-xl border border-[#e2d5c8] shadow-sm space-y-2 text-xs">
                     <div className="grid grid-cols-3">
                       <span className="text-text-secondary font-bold">Data</span>
                       <span className="col-span-2 text-foreground">Sentinel-2 L2A</span>
@@ -2090,7 +2090,7 @@ export default function LandIntelligence() {
                       <span className="text-text-secondary font-bold">AOI</span>
                       <span className="col-span-2 text-foreground">User Polygon</span>
                     </div>
-                    <div className="grid grid-cols-3 pt-2 border-t border-accent/40 mt-1">
+                    <div className="grid grid-cols-3 pt-2 border-t border-border mt-1">
                       <span className="text-text-secondary font-bold">Method</span>
                       <span className="col-span-2 text-foreground">NDVI Temporal Differencing</span>
                     </div>

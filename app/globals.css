@@ -2,22 +2,68 @@
 
 :root {
   --background: #F6F2EB;
-  --foreground: #5B4A3E;
-  --color-primary: #5B4A3E;
-  --color-secondary: #F8DED4;
-  --color-accent: #CBBFAF;
-  --color-white: #FFFFFF;
-  --color-text-secondary: #8A8077;
+  --surface: #FFFFFF;
+  --muted: #F1F3F5;
+  --dark-surface: #17212B;
+  --foreground: #263746;
+  --text-secondary: #647586;
+  --border: #D9E0E6;
+
+  /* Brand / BhooGyan */
+  --brand: #17324D;
+  --brand-dark: #0F2438;
+  --brand-light: #E8F0F7;
+
+  /* BhooNeeti AI */
+  --ai: #0F766E;
+  --ai-dark: #0B5D57;
+  --ai-light: #E6F5F3;
+
+  /* GIS Intelligence */
+  --gis: #2563EB;
+  --gis-dark: #1D4ED8;
+  --gis-light: #EAF1FF;
+
+  /* Policy Studio */
+  --policy: #B8891A;
+  --policy-dark: #8F6912;
+  --policy-light: #FBF4DF;
+
+  /* Evidence */
+  --evidence: #059669;
+  --evidence-dark: #047857;
+  --evidence-light: #E8F7F1;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-dark-surface: var(--dark-surface);
   --color-foreground: var(--foreground);
-  --color-primary: var(--color-primary);
-  --color-secondary: var(--color-secondary);
-  --color-accent: var(--color-accent);
-  --color-white: var(--color-white);
-  --color-text-secondary: var(--color-text-secondary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-light: var(--brand-light);
+
+  --color-ai: var(--ai);
+  --color-ai-dark: var(--ai-dark);
+  --color-ai-light: var(--ai-light);
+
+  --color-gis: var(--gis);
+  --color-gis-dark: var(--gis-dark);
+  --color-gis-light: var(--gis-light);
+
+  --color-policy: var(--policy);
+  --color-policy-dark: var(--policy-dark);
+  --color-policy-light: var(--policy-light);
+
+  --color-evidence: var(--evidence);
+  --color-evidence-dark: var(--evidence-dark);
+  --color-evidence-light: var(--evidence-light);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
