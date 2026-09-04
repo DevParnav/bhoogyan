@@ -34,6 +34,8 @@ export function getFriendlyErrorMessage(error: any): string {
       return 'Sign-in popup was closed before completion.';
     case 'auth/network-request-failed':
       return 'Network error. Please check your connection and try again.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized for Firebase Authentication. Please add it in the Firebase Console.';
     default:
       return error.message || 'Authentication failed. Please try again.';
   }
