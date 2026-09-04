@@ -196,8 +196,10 @@ export default function LandIntelligence() {
     try {
       if (modelType === 'unet_test') {
         // Dev test data fetch
-        const tiffResponse = await fetch('/sentinel2_test_512.tif');
-        if (!tiffResponse.ok) throw new Error("Could not load test TIFF from public folder.");
+        const tiffResponse = await fetch('/sentinel2_test_512.tif').catch(() => null);
+        if (!tiffResponse || !tiffResponse.ok) {
+          throw new Error("Could not load test TIFF from public folder. This is a DEV ONLY feature and the test file is not deployed to production.");
+        }
         const tiffBlob = await tiffResponse.blob();
 
         const formData = new FormData();
@@ -697,8 +699,14 @@ export default function LandIntelligence() {
                     onChange={(e) => setModelType(e.target.value)}
                     className="w-full p-2.5 bg-background border border-accent rounded-lg text-sm text-foreground focus:outline-none focus:border-primary">
                     <option value="bhuvan_api">Bhuvan API (Default)</option>
-                    <option value="unet_test">LULC U-Net (Dev Test TIFF)</option>
+                    <option value="unet_real">LULC U-Net</option>
+                    <option value="unet_test">Developer Test (Test TIFF)</option>
                   </select>
+                  {modelType === 'unet_real' && (
+                    <div className="text-[10px] font-bold text-primary mt-1 bg-secondary inline-block px-2 py-0.5 rounded shadow-sm">
+                      Sentinel-2 AOI Classification
+                    </div>
+                  )}
                   {modelType === 'unet_test' && (
                     <div className="text-[10px] font-bold text-primary mt-1 bg-secondary inline-block px-2 py-0.5 rounded shadow-sm">
                       Using test Sentinel-2 imagery (AOI ignored)
@@ -707,24 +715,26 @@ export default function LandIntelligence() {
                 </div>
 
                 {/* 5. Run Button */}
-                <div className="pt-2">
-                  <button
-                    onClick={runClassification}
-                    disabled={(!selectedAoi && modelType !== 'unet_test') || isClassifying}
-                    className="w-full py-3 px-4 bg-primary text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-                  >
-                    {isClassifying ? 'Analyzing...' : 'Run Classification'}
-                  </button>
-                  
-                  {classificationError && (
-                    <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
-                      {classificationError}
-                    </div>
-                  )}
-                </div>
+                {modelType !== 'unet_real' && (
+                  <div className="pt-2">
+                    <button
+                      onClick={runClassification}
+                      disabled={(!selectedAoi && modelType !== 'unet_test') || isClassifying}
+                      className="w-full py-3 px-4 bg-primary text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+                    >
+                      {isClassifying ? 'Analyzing...' : 'Run Classification'}
+                    </button>
+                    
+                    {classificationError && (
+                      <div className="mt-3 p-3 bg-[#F8DED4]/50 border border-[#F8DED4] text-primary text-xs rounded-lg">
+                        {classificationError}
+                      </div>
+                    )}
+                  </div>
+                )}
                 
-                {/* 5B. Dev Control: Prepare Sentinel-2 Data */}
-                {selectedAoi && (
+                {/* 5B. Real U-Net Workflow: Prepare Sentinel-2 Data */}
+                {selectedAoi && modelType === 'unet_real' && (
                   <div className="pt-2 border-t border-accent mt-2">
                     <div className="flex gap-2 mb-2">
                       <div className="flex-1">
