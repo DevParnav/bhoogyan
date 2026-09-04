@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AuthLayout from "./components/AuthLayout";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '@/components/AuthProvider';
+// import { usePathname } from 'next/navigation'; // removed
 
 export default function RootLayout({
   children,
@@ -25,16 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex bg-background text-foreground">
         <AuthProvider>
-          <Sidebar />
-          <main className="flex-1 overflow-auto h-screen p-8">
-            {children}
-          </main>
+          <AuthLayout>{children}</AuthLayout>
         </AuthProvider>
       </body>
     </html>
