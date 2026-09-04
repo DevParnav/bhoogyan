@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const hasKey = !!process.env.GEMINI_API_KEY;
     console.log(`[BHOONEETI] API key present: ${hasKey}`);
-    console.log(`[BHOONEETI] model: ${process.env.GEMINI_MODEL || "gemini-1.5-flash"}`);
+    console.log(`[BHOONEETI] model: ${process.env.GEMINI_MODEL || "gemini-2.5-flash"}`);
 
     if (!hasKey) {
       return NextResponse.json({ success: false, error: 'Server configuration error: Missing API Key' }, { status: 500 });
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const status = isRateLimit ? 429 : 500;
     
     return NextResponse.json(
-      { success: false, error: error.message || 'Gemini API request failed.' },
+      { success: false, error: "Unable to reach BhooNeeti's AI service right now. Please try again." },
       { status }
     );
   }
