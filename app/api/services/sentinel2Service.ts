@@ -112,15 +112,7 @@ export class Sentinel2Service {
     };
 
     // Public STAC search works without authentication!
-    const isProviderConfigured = true; 
     const providerName = "Copernicus Data Space";
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[SENTINEL2] Searching Copernicus STAC');
-      console.log(`[SENTINEL2] Collection: sentinel-2-l2a`);
-      console.log(`[SENTINEL2] Date range: ${searchOptions.dateFrom} to ${searchOptions.dateTo}`);
-      console.log(`[SENTINEL2] Cloud limit: <= ${searchOptions.maxCloudCoverage}%`);
-    }
 
     // Call the real STAC API
     const stacUrl = 'https://stac.dataspace.copernicus.eu/v1/search';
@@ -146,6 +138,12 @@ export class Sentinel2Service {
       limit: 10
     };
 
+    console.log('[STAC DEBUG] --- STAC REQUEST LOGGING ---');
+    console.log('[STAC DEBUG] 1. Geometry Type:', aoi.geometry.type);
+    console.log('[STAC DEBUG] 2. AOI Bounding Box:', [bbox.minLng, bbox.minLat, bbox.maxLng, bbox.maxLat]);
+    console.log('[STAC DEBUG] 3. Datetime Sent:', datetime);
+    console.log('[STAC DEBUG] 4. Cloud Percentage Sent (lte):', searchOptions.maxCloudCoverage);
+
     let stacFeatures: any[] = [];
     try {
       const controller = new AbortController();
@@ -159,21 +157,21 @@ export class Sentinel2Service {
       });
       clearTimeout(timeoutId);
 
+      console.log('[STAC DEBUG] 5. HTTP Status:', stacRes.status);
+
       if (!stacRes.ok) {
         const errText = await stacRes.text();
-        console.error('[SENTINEL2] STAC Error:', stacRes.status, errText);
+        console.error('[STAC DEBUG] 6. Raw response error:', errText);
         throw new Error(`Copernicus STAC API failure: HTTP ${stacRes.status}`);
       }
 
       const stacData = await stacRes.json();
       stacFeatures = stacData.features || [];
+      console.log('[STAC DEBUG] 7. Response Features Length:', stacFeatures.length);
+      console.log('[STAC DEBUG] ----------------------------');
     } catch (err: any) {
       if (err.name === 'AbortError') throw new Error('Copernicus STAC API timeout');
       throw new Error(`Copernicus STAC API error: ${err.message}`);
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[SENTINEL2] Scenes found: ${stacFeatures.length}`);
     }
 
     // Parse the STAC features into clean Scene objects
