@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
-import { predictionScenarios, type PredictionScenario } from '../../data/predictionData';
-import { riskScenarios, type RiskScenario } from '../../data/riskData';
-import { suitabilityScenarios, type SuitabilityScenario } from '../../data/suitabilityData';
+import { predictionScenarios, type PredictionScenario } from '../data/predictionData';
+import { riskScenarios, type RiskScenario } from '../data/riskData';
+import { suitabilityScenarios, type SuitabilityScenario } from '../data/suitabilityData';
 
 import { useCallback } from 'react';
 
