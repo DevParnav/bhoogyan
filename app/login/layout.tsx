@@ -11,11 +11,5 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-screen w-full flex items-center justify-center bg-brand-dark text-foreground overflow-hidden">
-        {children}
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }
