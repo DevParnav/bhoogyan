@@ -3,7 +3,7 @@ import DashboardMapWrapper from '@/components/DashboardMapWrapper';
 
 export default function Dashboard() {
   return (
-    <div className="max-w-7xl mx-auto pb-12 space-y-8">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
       {/* Header */}
       <div className="bg-surface rounded-xl p-8 border border-border shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -12,7 +12,7 @@ export default function Dashboard() {
             Connect land evidence, research, geospatial intelligence and policy innovation in one workflow.
           </p>
         </div>
-        <div className="flex gap-3 text-sm">
+        <div className="flex flex-wrap gap-3 text-sm">
           <Link href="/gis" className="bg-surface border border-gis/30 text-gis px-4 py-2 rounded-lg font-medium hover:border-gis hover:bg-gis-light transition-colors">
             Explore Land Intelligence
           </Link>
@@ -23,13 +23,13 @@ export default function Dashboard() {
       </div>
 
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
         
         {/* Main Column */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* Key Indicators */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
             <div className="bg-surface p-5 rounded-xl border border-evidence/20 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-evidence"></div>
               <h3 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Total Evidence</h3>
