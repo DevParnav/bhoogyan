@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import DashboardMapWrapper from '@/components/DashboardMapWrapper';
 
 export default function Dashboard() {
   return (
@@ -49,14 +50,8 @@ export default function Dashboard() {
               <h3 className="font-semibold text-foreground">Land Intelligence Overview</h3>
               <Link href="/gis" className="text-xs text-primary font-medium hover:underline">Open Full Map →</Link>
             </div>
-            <div className="flex-1 bg-accent/20 rounded-lg relative flex items-center justify-center border border-accent">
-              <div className="absolute inset-0 opacity-20" style={{ 
-                backgroundImage: 'radial-gradient(#8AAEE0 1px, transparent 1px)',
-                backgroundSize: '20px 20px'
-              }}></div>
-              <span className="text-sm font-medium text-text-secondary relative z-10 bg-white/80 px-3 py-1 rounded shadow-sm">
-                Pune District Topography
-              </span>
+            <div className="flex-1 rounded-lg relative flex items-center justify-center border border-accent overflow-hidden">
+              <DashboardMapWrapper />
             </div>
           </div>
 
