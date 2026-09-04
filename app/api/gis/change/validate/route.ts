@@ -22,7 +22,11 @@ export async function POST(request: NextRequest) {
     const absAfter = path.resolve(afterFilePath);
     const tmpDir = path.join(os.tmpdir(), 'bhoogyan');
     await fs.mkdir(tmpDir, { recursive: true });
-    if (!absBefore.startsWith(tmpDir) || !absAfter.startsWith(tmpDir)) {
+    // Case-insensitive comparison for Windows compatibility
+    const normalizedBefore = absBefore.toLowerCase();
+    const normalizedAfter = absAfter.toLowerCase();
+    const normalizedTmp = tmpDir.toLowerCase();
+    if (!normalizedBefore.startsWith(normalizedTmp) || !normalizedAfter.startsWith(normalizedTmp)) {
       return NextResponse.json(
         { error: 'Invalid file paths.' },
         { status: 400 }

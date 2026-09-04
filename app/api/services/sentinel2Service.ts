@@ -301,14 +301,18 @@ function evaluatePixel(sample) {
     };
 
     const processUrl = 'https://sh.dataspace.copernicus.eu/process/v1';
+    const downloadController = new AbortController();
+    const downloadTimeout = setTimeout(() => downloadController.abort(), 60000); // 60s timeout
     const res = await fetch(processUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: downloadController.signal
     });
+    clearTimeout(downloadTimeout);
 
     if (!res.ok) {
       const errText = await res.text();

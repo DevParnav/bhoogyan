@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
 
     const absPath = path.resolve(ndviChangePath);
     const tmpDir = path.join(os.tmpdir(), 'bhoogyan');
-    if (!absPath.startsWith(tmpDir)) {
+    // Case-insensitive comparison for Windows compatibility
+    if (!absPath.toLowerCase().startsWith(tmpDir.toLowerCase())) {
       return NextResponse.json(
         { error: 'Invalid file path.' },
         { status: 400 }
