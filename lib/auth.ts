@@ -4,9 +4,17 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   sendPasswordResetEmail,
+  signOut,
   AuthError
 } from 'firebase/auth';
 import { auth, isConfigured } from './firebase';
+
+export const logoutUser = async () => {
+  if (!isConfigured || !auth) {
+    throw new Error('auth/missing-configuration');
+  }
+  return await signOut(auth);
+};
 
 export function getFriendlyErrorMessage(error: any): string {
   if (!error || !error.code) return 'An unexpected error occurred. Please try again.';

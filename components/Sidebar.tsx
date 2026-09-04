@@ -19,6 +19,10 @@ export default function Sidebar() {
     }
   }, []);
 
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/reset-password') {
+    return null;
+  }
+
   const handleMouseEnter = () => {
     if (isLocked) return;
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
@@ -149,12 +153,20 @@ export default function Sidebar() {
         </nav>
         
         <div className="p-5 border-t border-accent/40 flex items-center justify-center shrink-0">
-          <Link 
-            href="/profile" 
-            className="w-[42px] h-[42px] rounded-full bg-background text-primary flex items-center justify-center font-bold text-[14px] border border-accent/60 hover:bg-[var(--color-secondary)] hover:border-accent transition-all shadow-sm"
+          <button 
+            onClick={async () => {
+              const { logoutUser } = await import('@/lib/auth');
+              try {
+                await logoutUser();
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+            title="Log out"
+            className="w-[42px] h-[42px] rounded-full bg-background text-primary flex items-center justify-center font-bold text-[14px] border border-accent/60 hover:bg-[var(--color-secondary)] hover:border-accent hover:text-red-600 transition-all shadow-sm"
           >
             PS
-          </Link>
+          </button>
         </div>
       </aside>
     </>
