@@ -16,9 +16,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="flex min-h-full bg-background text-foreground">
+    <div className="flex w-full min-h-full bg-background text-foreground">
       <Sidebar />
-      <main className="flex-1 overflow-auto h-screen p-8 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0 w-0 overflow-y-auto overflow-x-hidden h-screen p-8">{children}</main>
     </div>
   );
 }

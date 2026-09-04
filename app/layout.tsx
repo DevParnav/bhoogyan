@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex bg-background text-foreground">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full w-full antialiased`}>
+      <body className="min-h-full w-full flex bg-background text-foreground overflow-x-hidden">
         <AuthProvider>
           <AuthLayout>{children}</AuthLayout>
         </AuthProvider>
