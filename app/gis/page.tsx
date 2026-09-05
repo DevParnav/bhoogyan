@@ -671,23 +671,21 @@ export default function LandIntelligence() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-hidden pb-4">
-        <div className="flex flex-col lg:grid lg:grid-cols-[minmax(280px,0.8fr)_minmax(450px,1.8fr)_minmax(320px,1fr)] h-full gap-4 lg:gap-4 relative">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden pb-4">
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[minmax(280px,0.8fr)_minmax(450px,1.8fr)_minmax(320px,1fr)] lg:grid-rows-1 gap-4 lg:gap-4 relative">
 
           {/* Center Panel: Map Container */}
           <div className="col-start-2 flex flex-col h-full z-0 w-full bg-surface rounded-xl border border-border shadow-sm overflow-hidden min-h-[500px] lg:min-h-0 flex-1 min-w-0">
-            <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full min-w-0">
-              <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
-                <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
-                {selectedAoi ? (
-                  <span className="text-xs bg-gis-light text-gis px-2 py-1 rounded font-medium shadow-sm">AOI Selected</span>
-                ) : (
-                  <span className="text-xs text-text-secondary px-2 py-1">Draw an AOI to begin</span>
-                )}
-              </div>
-              <div className="flex-1 relative bg-muted min-h-0 min-w-0">
-                <MapComponent onAoiCreated={handleAoiCreated} onAoiCleared={handleAoiCleared} />
-              </div>
+            <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
+              <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
+              {selectedAoi ? (
+                <span className="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-1 rounded border border-emerald-200">AOI Selected</span>
+              ) : (
+                <span className="text-xs text-text-secondary px-2 py-1">Draw an AOI to begin</span>
+              )}
+            </div>
+            <div className="flex-1 relative bg-muted min-h-0 min-w-0 h-full w-full">
+              <MapComponent onAoiCreated={handleAoiCreated} onAoiCleared={handleAoiCleared} />
             </div>
           </div>
 
