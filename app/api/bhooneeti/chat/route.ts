@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { success: false, error: safeMessage },
+      { success: false, error: safeMessage, details: errStr.replace(process.env.GEMINI_API_KEY || 'HIDDEN', '[REDACTED]') },
       { status }
     );
   }
