@@ -8,9 +8,9 @@ interface HeaderProps {
 
 export default function Header({ breadcrumbs, title, subtitle }: HeaderProps) {
   return (
-    <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6 bg-surface p-4 md:p-6 rounded-xl border border-border shadow-sm">
+    <header className="flex justify-between items-start mb-8 bg-surface p-6 rounded-xl border border-border shadow-sm">
       <div>
-        <nav className="flex items-center space-x-2 text-xs text-text-secondary mb-2">
+        <nav className="flex items-center space-x-2 text-xs text-text-secondary mb-3">
           <Link href="/" className="hover:text-brand transition-colors">BhooGyan</Link>
           {breadcrumbs.map((crumb, index) => (
             <div key={index} className="flex items-center space-x-2">

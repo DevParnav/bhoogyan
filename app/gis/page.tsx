@@ -1682,9 +1682,7 @@ export default function LandIntelligence() {
                     )}
                   </div>
                 )}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
 
             {/* PREDICTION TAB */}
