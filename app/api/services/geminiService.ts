@@ -19,7 +19,7 @@ export async function askGemini(message: string): Promise<string> {
     throw new Error("Missing GEMINI_API_KEY");
   }
   
-  const modelName = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
+  const modelName = process.env.GEMINI_MODEL || "gemma-4-26b-a4b-it";
   const ai = new GoogleGenAI({ apiKey });
 
   try {

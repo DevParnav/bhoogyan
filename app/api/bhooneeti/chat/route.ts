@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { askGemini } from '@/app/api/services/geminiService';
-import { generateEmbedding } from '@/app/api/services/embeddingService';
 
 export async function POST(req: Request) {
   const startTime = Date.now();
-  console.log('[BHOONEETI] request received');
+  console.log('[BHOONEETI] Chat request received');
   
   try {
     const hasKey = !!process.env.GEMINI_API_KEY;
     console.log(`[BHOONEETI] API key present: ${hasKey}`);
-    console.log(`[BHOONEETI] model: ${process.env.GEMINI_MODEL || "gemini-3.1-flash-lite"}`);
+    console.log(`[BHOONEETI] Generation model: ${process.env.GEMINI_MODEL || "gemma-4-26b-a4b-it"}`);
 
     if (!hasKey) {
       return NextResponse.json({ success: false, error: 'Server configuration error: Missing API Key' }, { status: 500 });
@@ -26,19 +25,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Message too long' }, { status: 400 });
     }
 
-    console.log('[BHOONEETI] calling Embedding service for the user query');
-    const queryEmbedding = await generateEmbedding(message, "RETRIEVAL_QUERY");
-    console.log(`[RETRIEVAL] Note: Semantic document retrieval is not yet connected because no evidence/vector store is currently configured.`);
-    
-    // In the future: const retrievedDocuments = await performSearch(queryEmbedding);
-    // message = buildPromptWithContext(message, retrievedDocuments);
-
-    console.log('[BHOONEETI] calling Gemini for generation');
+    console.log('[BHOONEETI] calling Gemini');
     const answer = await askGemini(message);
     console.log('[BHOONEETI] Gemini response received');
     
     const duration = Date.now() - startTime;
-    console.log(`[BHOONEETI] completed in ${duration}ms`);
+    console.log(`[BHOONEETI] Generation completed (in ${duration}ms)`);
     
     return NextResponse.json({ success: true, answer });
   } catch (error: any) {
