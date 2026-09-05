@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const hasKey = !!process.env.GEMINI_API_KEY;
     console.log(`[BHOONEETI] API key present: ${hasKey}`);
-    console.log(`[BHOONEETI] model: ${process.env.GEMINI_MODEL || "gemini-3.8-flash"}`);
+    console.log(`[BHOONEETI] model: ${process.env.GEMINI_MODEL || "gemini-3.1-flash-lite"}`);
 
     if (!hasKey) {
       return NextResponse.json({ success: false, error: 'Server configuration error: Missing API Key' }, { status: 500 });
