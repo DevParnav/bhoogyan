@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, FeatureGroup, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, FeatureGroup, LayersControl, useMap } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import L from 'leaflet';
 
@@ -59,6 +59,20 @@ export default function MapComponent({ onAoiCreated, onAoiCleared }: MapComponen
     }
   };
 
+  // Component to handle map resizing
+  function MapResizer() {
+    const map = useMap();
+    useEffect(() => {
+      const resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      const container = map.getContainer();
+      resizeObserver.observe(container);
+      return () => resizeObserver.unobserve(container);
+    }, [map]);
+    return null;
+  }
+
   return (
     <MapContainer 
       center={[18.5204, 73.8567]} // Pune coordinates
@@ -66,6 +80,7 @@ export default function MapComponent({ onAoiCreated, onAoiCleared }: MapComponen
       style={{ height: '100%', width: '100%', zIndex: 0 }}
       zoomControl={true}
     >
+      <MapResizer />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

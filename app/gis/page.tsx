@@ -643,7 +643,7 @@ export default function LandIntelligence() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-12 flex flex-col h-[calc(100vh-40px)]">
+    <div className="w-full px-4 lg:px-6 pb-6 flex flex-col h-[calc(100vh-2rem)]">
       <div className="flex-shrink-0">
         <Header
           breadcrumbs={[{ label: 'Land Intelligence' }]}
@@ -672,16 +672,10 @@ export default function LandIntelligence() {
 
       {/* Content Area */}
       <div className="flex-1 min-h-0 overflow-hidden pb-4">
-        <style>{`
-          @media (min-width: 1024px) {
-            .resizable-map-panel { width: ${mapWidthPct}% !important; flex: 0 0 ${mapWidthPct}% !important; }
-            .resizable-results-panel { width: calc(100% - ${mapWidthPct}% - 16px) !important; flex: 0 0 calc(100% - ${mapWidthPct}% - 16px) !important; }
-          }
-        `}</style>
-        <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-0 relative">
+        <div className="flex flex-col lg:grid lg:grid-cols-[minmax(280px,0.8fr)_minmax(450px,1.8fr)_minmax(320px,1fr)] h-full gap-4 lg:gap-4 relative">
 
-          {/* Main Map Container */}
-          <div className={`resizable-map-panel flex flex-col h-full z-0 w-full ${isResizing ? 'pointer-events-none' : ''}`}>
+          {/* Center Panel: Map Container */}
+          <div className="col-start-2 flex flex-col h-full z-0 w-full bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
               <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
                 <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
@@ -711,7 +705,7 @@ export default function LandIntelligence() {
           </div>
 
           {/* Side Panels Based on Tab */}
-          <div className={`resizable-results-panel h-full w-full overflow-y-auto pr-2 pb-12 space-y-6 ${isResizing ? 'pointer-events-none select-none' : ''}`}>
+          <div className="contents">
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
@@ -734,9 +728,11 @@ export default function LandIntelligence() {
 
             {/* CLASSIFICATION TAB */}
             {activeTab === 'classification' && (
-              <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] flex flex-col gap-5">
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Classification Workspace</h3>
+              <>
+                <div className="col-start-1 h-full overflow-y-auto pr-2 space-y-6">
+                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm flex flex-col gap-5">
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Classification Workspace</h3>
                   <p className="text-[13px] text-text-secondary">
                     Configure parameters and run inference on the selected AOI.
                   </p>
@@ -943,8 +939,15 @@ export default function LandIntelligence() {
                   </div>
                 )}
 
-                {/* 6. Results View */}
-                {classificationResult && (() => {
+                  </div>
+                </div>
+                <div className="col-start-3 h-full overflow-y-auto pl-2 space-y-6">
+                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm flex flex-col gap-5">
+                    {/* 6. Results View */}
+                    {!classificationResult && (
+                      <div className="text-center text-text-secondary text-sm p-4">Run classification to view results.</div>
+                    )}
+                    {classificationResult && (() => {
                   const raw = classificationResult.raw_response;
 
                   let statsArray: any[] = [];
@@ -1036,15 +1039,19 @@ export default function LandIntelligence() {
                     </div>
                   );
                 })()}
-              </div>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* CHANGE DETECTION TAB */}
             {activeTab === 'change' && (
-              <div className="flex flex-col gap-6">
+              <>
+                <div className="col-start-1 h-full overflow-y-auto pr-2">
+                  <div className="flex flex-col gap-4">
 
-                {/* Workspace Header & Controls */}
-                <div className="bg-surface p-5 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] shrink-0">
+                    {/* Workspace Header & Controls */}
+                    <div className="bg-surface p-5 rounded-xl border border-border shadow-sm shrink-0">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Change Detection Workspace</h3>
@@ -1675,7 +1682,9 @@ export default function LandIntelligence() {
                     )}
                   </div>
                 )}
-              </div>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* PREDICTION TAB */}
