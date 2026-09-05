@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { askGemini } from '@/app/api/services/geminiService';
+import { generateEmbedding } from '@/app/api/services/embeddingService';
 
 export async function POST(req: Request) {
   const startTime = Date.now();
@@ -25,7 +26,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Message too long' }, { status: 400 });
     }
 
-    console.log('[BHOONEETI] calling Gemini');
+    console.log('[BHOONEETI] calling Embedding service for the user query');
+    const queryEmbedding = await generateEmbedding(message, "RETRIEVAL_QUERY");
+    console.log(`[RETRIEVAL] Note: Semantic document retrieval is not yet connected because no evidence/vector store is currently configured.`);
+    
+    // In the future: const retrievedDocuments = await performSearch(queryEmbedding);
+    // message = buildPromptWithContext(message, retrievedDocuments);
+
+    console.log('[BHOONEETI] calling Gemini for generation');
     const answer = await askGemini(message);
     console.log('[BHOONEETI] Gemini response received');
     
