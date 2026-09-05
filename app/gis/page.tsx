@@ -1683,8 +1683,9 @@ export default function LandIntelligence() {
                   </div>
                 )}
               </div>
-            )}
-
+            </div>
+          </>
+        )}
             {/* PREDICTION TAB */}
             {activeTab === 'prediction' && (
               <div className="flex flex-col gap-6">
