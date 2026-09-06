@@ -16,45 +16,71 @@ export class LulcModelService {
     const blob = new Blob([arrayBuffer], { type: file.type || 'image/tiff' });
     formData.append('file', blob, (file as any).name || 'image.tif');
 
-    try {
-      console.log('[CLASSIFICATION] lulcModelService: sending POST to', `${modelUrl}/predict`);
-      const response = await fetch(`${modelUrl}/predict`, {
-        method: 'POST',
-        // Note: fetch will automatically set the Content-Type to multipart/form-data
-        // and append the correct boundary when passing a FormData object.
-        body: formData,
-      });
-      console.log(`[CLASSIFICATION] lulcModelService: received status ${response.status}`);
+    const maxRetries = 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        console.log(`[CLASSIFICATION] lulcModelService: sending POST to ${modelUrl}/predict (Attempt ${attempt + 1}/${maxRetries})`);
+        
+        // Add AbortController to handle timeouts (e.g., 60 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        const response = await fetch(`${modelUrl}/predict`, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log(`[CLASSIFICATION] lulcModelService: received status ${response.status}`);
 
-      if (!response.ok) {
-        // Attempt to parse any error message returned by the server
-        let errorMsg = `HTTP Error ${response.status} ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          if (errorData && errorData.error) {
-            errorMsg += ` - ${errorData.error}`;
-          } else {
-            errorMsg += ` - ${JSON.stringify(errorData)}`;
-          }
-        } catch (e) {
-          // If response is not JSON, try text
+        if (!response.ok) {
+          // Attempt to parse any error message returned by the server
+          let errorMsg = `HTTP Error ${response.status} ${response.statusText}`;
           try {
-            const textData = await response.text();
-            if (textData) {
-              errorMsg += ` - ${textData}`;
+            const errorData = await response.json();
+            if (errorData && errorData.error) {
+              errorMsg += ` - ${errorData.error}`;
+            } else {
+              errorMsg += ` - ${JSON.stringify(errorData)}`;
             }
-          } catch (e2) {
-            // ignore
+          } catch (e) {
+            // If response is not JSON, try text
+            try {
+              const textData = await response.text();
+              if (textData) {
+                errorMsg += ` - ${textData}`;
+              }
+            } catch (e2) {
+              // ignore
+            }
           }
+          
+          if (response.status >= 500 && attempt < maxRetries - 1) {
+             console.warn(`[CLASSIFICATION] Server error: ${errorMsg}. Retrying...`);
+             throw new Error("Retryable error");
+          }
+          
+          throw new Error(`Model Classification Failed: ${errorMsg}`);
+        }
+
+        return await response.json();
+      } catch (error: any) {
+        attempt++;
+        const isTimeout = error.name === 'AbortError' || error.message.includes('fetch failed');
+        
+        if (attempt >= maxRetries || (!isTimeout && error.message !== "Retryable error")) {
+          console.error("LULC Model Service Error after max retries:", error);
+          throw error;
         }
         
-        throw new Error(`Model Classification Failed: ${errorMsg}`);
+        const delay = Math.pow(2, attempt) * 2000; // 4s, 8s
+        console.log(`[CLASSIFICATION] Request failed or timed out. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
-
-      return await response.json();
-    } catch (error: any) {
-      console.error("LULC Model Service Error:", error);
-      throw error;
     }
   }
 }

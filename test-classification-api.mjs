@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 async function runTest() {
-  const tiffPath = String.raw`C:\Users\Parnav\Downloads\S2C_MSIL2A_20260821T052641_N0512_R105_T43RGM_20260821T102216.SAFE\S2C_MSIL2A_20260821T052641_N0512_R105_T43RGM_20260821T102216.SAFE\sentinel2_test_512.tif`;
+  const tiffPath = path.join(process.cwd(), 'tests', 'fixtures', 'sentinel2_test_512.tif');
   
   if (!fs.existsSync(tiffPath)) {
     console.error("Test TIFF not found at:", tiffPath);

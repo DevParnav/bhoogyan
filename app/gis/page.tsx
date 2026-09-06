@@ -643,7 +643,7 @@ export default function LandIntelligence() {
   };
 
   return (
-    <div className="w-full px-4 lg:px-6 pb-6 flex flex-col h-[calc(100vh-2rem)]">
+    <div className="max-w-7xl mx-auto pb-12 flex flex-col h-[calc(100vh-40px)]">
       <div className="flex-shrink-0">
         <Header
           breadcrumbs={[{ label: 'Land Intelligence' }]}
@@ -671,21 +671,29 @@ export default function LandIntelligence() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden pb-4">
-        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[minmax(280px,0.8fr)_minmax(450px,1.8fr)_minmax(320px,1fr)] lg:grid-rows-1 gap-4 lg:gap-4 relative">
+      <div className="flex-1 min-h-0 overflow-hidden pb-4">
+        <style>{`
+          @media (min-width: 1024px) {
+            .resizable-map-panel { width: ${mapWidthPct}% !important; flex: 0 0 ${mapWidthPct}% !important; }
+            .resizable-results-panel { width: calc(100% - ${mapWidthPct}% - 16px) !important; flex: 0 0 calc(100% - ${mapWidthPct}% - 16px) !important; }
+          }
+        `}</style>
+        <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-0 relative">
 
-          {/* Center Panel: Map Container */}
-          <div className="col-start-2 flex flex-col h-full z-0 w-full bg-surface rounded-xl border border-border shadow-sm overflow-hidden min-h-[500px] lg:min-h-0 flex-1 min-w-0">
-            <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
-              <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
-              {selectedAoi ? (
-                <span className="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-1 rounded border border-emerald-200">AOI Selected</span>
-              ) : (
-                <span className="text-xs text-text-secondary px-2 py-1">Draw an AOI to begin</span>
-              )}
-            </div>
-            <div className="flex-1 relative bg-muted min-h-0 min-w-0 h-full w-full">
-              <MapComponent onAoiCreated={handleAoiCreated} onAoiCleared={handleAoiCleared} />
+          {/* Main Map Container */}
+          <div className={`resizable-map-panel flex flex-col h-full z-0 w-full ${isResizing ? 'pointer-events-none' : ''}`}>
+            <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
+              <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
+                <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
+                {selectedAoi ? (
+                  <span className="text-xs bg-gis-light text-gis px-2 py-1 rounded font-medium shadow-sm">AOI Selected</span>
+                ) : (
+                  <span className="text-xs text-text-secondary px-2 py-1">Draw an AOI to begin</span>
+                )}
+              </div>
+              <div className="flex-1 relative bg-muted">
+                <MapComponent onAoiCreated={handleAoiCreated} onAoiCleared={handleAoiCleared} />
+              </div>
             </div>
           </div>
 
@@ -703,42 +711,32 @@ export default function LandIntelligence() {
           </div>
 
           {/* Side Panels Based on Tab */}
-          <div className="contents">
+          <div className={`resizable-results-panel h-full w-full overflow-y-auto pr-2 pb-12 space-y-6 ${isResizing ? 'pointer-events-none select-none' : ''}`}>
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
               <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 space-y-6 min-w-0">
-                  <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
-                    <h3 className="font-semibold text-foreground mb-4">Active Monitoring Zones</h3>
-                    <ul className="space-y-3 text-sm">
-                      <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border break-words">
-                        <span className="font-medium text-foreground">Mulshi Buffer Zone</span>
-                        <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded ml-2 shrink-0">Tracking</span>
-                      </li>
-                      <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border break-words">
-                        <span className="font-medium text-foreground">Maval Riparian</span>
-                        <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded ml-2 shrink-0">Tracking</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="col-start-3 h-full overflow-y-auto overflow-x-hidden pl-2 space-y-6 min-w-0">
-                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm text-center text-text-secondary text-sm">
-                    Select a zone on the map to view detailed statistics.
-                  </div>
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <h3 className="font-semibold text-foreground mb-4">Active Monitoring Zones</h3>
+                  <ul className="space-y-3 text-sm">
+                    <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border">
+                      <span className="font-medium text-foreground">Mulshi Buffer Zone</span>
+                      <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded">Tracking</span>
+                    </li>
+                    <li className="flex justify-between items-center p-3 bg-muted rounded-lg border border-border">
+                      <span className="font-medium text-foreground">Maval Riparian</span>
+                      <span className="text-[10px] uppercase font-bold text-gis bg-gis-light px-2 py-1 rounded">Tracking</span>
+                    </li>
+                  </ul>
                 </div>
               </>
             )}
 
             {/* CLASSIFICATION TAB */}
             {activeTab === 'classification' && (
-              <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 space-y-6 min-w-0">
-                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm flex flex-col gap-5 min-w-0">
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-1">Classification Workspace</h3>
+              <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] flex flex-col gap-5">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">Classification Workspace</h3>
                   <p className="text-[13px] text-text-secondary">
                     Configure parameters and run inference on the selected AOI.
                   </p>
@@ -945,15 +943,8 @@ export default function LandIntelligence() {
                   </div>
                 )}
 
-                  </div>
-                </div>
-                <div className="col-start-3 h-full overflow-y-auto overflow-x-hidden pl-2 space-y-6 min-w-0">
-                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm flex flex-col gap-5 min-w-0">
-                    {/* 6. Results View */}
-                    {!classificationResult && (
-                      <div className="text-center text-text-secondary text-sm p-4">Run classification to view results.</div>
-                    )}
-                    {classificationResult && (() => {
+                {/* 6. Results View */}
+                {classificationResult && (() => {
                   const raw = classificationResult.raw_response;
 
                   let statsArray: any[] = [];
@@ -1045,19 +1036,15 @@ export default function LandIntelligence() {
                     </div>
                   );
                 })()}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
 
             {/* CHANGE DETECTION TAB */}
             {activeTab === 'change' && (
-              <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 min-w-0">
-                  <div className="flex flex-col gap-4 min-w-0">
+              <div className="flex flex-col gap-6">
 
-                    {/* Workspace Header & Controls */}
-                    <div className="bg-surface p-5 rounded-xl border border-border shadow-sm shrink-0">
+                {/* Workspace Header & Controls */}
+                <div className="bg-surface p-5 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] shrink-0">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Change Detection Workspace</h3>
@@ -1485,13 +1472,9 @@ export default function LandIntelligence() {
                     )}
                   </div>
                 )}
-              </div>
-            </div>
 
-            <div className="col-start-3 h-full overflow-y-auto overflow-x-hidden pl-2 space-y-6 min-w-0">
-              <div className="flex flex-col gap-4">
                 {/* 5. Spectral Change Detection & Classification Accordion */}
-                {cdValidationResult && cdValidationResult.success ? (
+                {cdValidationResult && cdValidationResult.success && (
                   <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden shrink-0">
                     <button
                       onClick={() => toggleSection('results')}
@@ -1691,26 +1674,20 @@ export default function LandIntelligence() {
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="bg-surface p-6 rounded-xl border border-border shadow-sm text-center text-text-secondary text-sm">
-                    Validate scenes to view results.
-                  </div>
                 )}
               </div>
-            </div>
-          </>
-        )}
+            )}
+
             {/* PREDICTION TAB */}
             {activeTab === 'prediction' && (
-              <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 min-w-0">
-                  <div className="flex flex-col gap-6 min-w-0">
-                    <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                      <div className="mb-6 border-b border-border pb-4">
-                        <h2 className="text-lg font-bold text-foreground mb-1">Land Cover Prediction</h2>
-                        <p className="text-[13px] text-text-secondary">Predict future urban expansion, agricultural shifts, and forest cover changes based on historical trends.</p>
-                      </div>
-                      <button
+              <div className="flex flex-col gap-6">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Land Cover Prediction</h2>
+                      <p className="text-xs text-text-secondary mt-1">Predict future urban expansion, agricultural shifts, and forest cover changes based on historical trends.</p>
+                    </div>
+                    <button
                       onClick={simulatePrediction}
                       disabled={isSimulatingPrediction || !selectedAoi}
                       className="px-6 py-3 bg-indigo-600 text-white text-[13px] font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
@@ -1792,20 +1769,18 @@ export default function LandIntelligence() {
                   )}
                 </div>
               </div>
-              </>
             )}
 
             {/* RISK & ANOMALY TAB */}
             {activeTab === 'risk' && (
-              <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 min-w-0">
-                  <div className="flex flex-col gap-6 min-w-0">
-                    <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                      <div className="mb-6 border-b border-border pb-4">
-                        <h2 className="text-lg font-bold text-foreground mb-1">Risk & Anomaly Detection</h2>
-                        <p className="text-[13px] text-text-secondary">Identify ecological vulnerabilities, unauthorized deforestation, and environmental stress hotspots.</p>
-                      </div>
-                      <button
+              <div className="flex flex-col gap-6">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Risk & Anomaly Detection</h2>
+                      <p className="text-xs text-text-secondary mt-1">Identify ecological vulnerabilities, unauthorized deforestation, and environmental stress hotspots.</p>
+                    </div>
+                    <button
                       onClick={simulateRisk}
                       disabled={isSimulatingRisk || !selectedAoi}
                       className="px-6 py-3 bg-red-600 text-white text-[13px] font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
@@ -1895,20 +1870,18 @@ export default function LandIntelligence() {
                   )}
                 </div>
               </div>
-              </>
             )}
 
             {/* SUITABILITY TAB */}
             {activeTab === 'suitability' && (
-              <>
-                <div className="col-start-1 h-full overflow-y-auto overflow-x-hidden pr-2 min-w-0">
-                  <div className="flex flex-col gap-6 min-w-0">
-                    <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                      <div className="mb-6 border-b border-border pb-4">
-                        <h2 className="text-lg font-bold text-foreground mb-1">Land Suitability Analysis</h2>
-                        <p className="text-[13px] text-text-secondary">Multi-criteria analysis to determine the optimal use of land for agriculture, urban development, and conservation.</p>
-                      </div>
-                      <button
+              <div className="flex flex-col gap-6">
+                <div className="bg-surface p-6 rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)]">
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Land Suitability Analysis</h2>
+                      <p className="text-xs text-text-secondary mt-1">Multi-criteria analysis to determine the optimal use of land for agriculture, urban development, and conservation.</p>
+                    </div>
+                    <button
                       onClick={simulateSuitability}
                       disabled={isSimulatingSuitability || !selectedAoi}
                       className="px-6 py-3 bg-emerald-600 text-white text-[13px] font-bold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
@@ -1984,9 +1957,8 @@ export default function LandIntelligence() {
                       </div>
                     </div>
                   )}
-                  </div>
                 </div>
-              </>
+              </div>
             )}
 
           </div>
