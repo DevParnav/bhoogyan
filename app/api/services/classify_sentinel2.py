@@ -36,6 +36,7 @@ def run_classification(tif_path):
         B2  = src.read(2).astype(np.float32)  # Blue
         B3  = src.read(3).astype(np.float32)  # Green
         B4  = src.read(4).astype(np.float32)  # Red
+        B5  = src.read(5).astype(np.float32)  # Red Edge 1
         B8  = src.read(8).astype(np.float32)  # NIR
         SCL = src.read(11).astype(np.float32) # Scene Classification Layer
         B11 = src.read(12).astype(np.float32) # SWIR1
@@ -44,6 +45,8 @@ def run_classification(tif_path):
     NDVI = (B8 - B4) / (B8 + B4 + 1e-8)
     NDBI = (B11 - B8) / (B11 + B8 + 1e-8)
     NDWI = (B3 - B11) / (B3 + B11 + 1e-8)
+    NDRE = (B8 - B5) / (B8 + B5 + 1e-8)
+    NIR_SWIR_RATIO = B8 / (B11 + 1e-8)
 
     H, W = B4.shape
     total_px = H * W
@@ -55,12 +58,12 @@ def run_classification(tif_path):
     water_mask = valid_bg & ((NDWI > 0.0) | (SCL == 6))
     mask[water_mask] = 4
 
-    # 2. Forest: Dense canopy (NDVI > 0.52 and B8 > 0.25)
-    forest_mask = valid_bg & (~water_mask) & (NDVI > 0.52) & (B8 > 0.25)
+    # 2. Forest: Continuous dense tree canopy require very high vegetation index (NDVI > 0.58), high NIR (B8 > 0.26), and high NIR/SWIR ratio (B8/B11 > 1.30) or NDRE (> 0.35)
+    forest_mask = valid_bg & (~water_mask) & (NDVI > 0.58) & (B8 > 0.26) & ((NIR_SWIR_RATIO > 1.30) | (NDRE > 0.35))
     mask[forest_mask] = 3
 
-    # 3. Crop: Cultivated vegetation (NDVI > 0.35 and NDBI < -0.02)
-    crop_mask = valid_bg & (~water_mask) & (~forest_mask) & (NDVI > 0.35) & (NDBI < -0.02)
+    # 3. Crop: Cultivated cropland, agricultural vegetation (SCL == 4 or NDVI > 0.30 with NDBI < -0.02)
+    crop_mask = valid_bg & (~water_mask) & (~forest_mask) & ((SCL == 4) | ((NDVI > 0.30) & (NDBI < -0.02)))
     mask[crop_mask] = 2
 
     # 4. Built-up Area: Urban/residential peak (NDBI >= -0.02 and NDVI < 0.40 and B11 > 0.10)
