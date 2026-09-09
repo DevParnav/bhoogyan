@@ -22,7 +22,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-leaflet": "^5.0.0",
-    "react-leaflet-draw": "^0.21.0"
+    "react-leaflet-draw": "^0.21.0",
+    "tiff": "^7.1.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -3,11 +3,12 @@ import { spawn } from 'child_process';
 import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
+import { EvidenceService } from '../../../services/evidenceService';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { ndviChangePath, threshold } = body;
+    const { ndviChangePath, threshold, sceneBefore, sceneAfter } = body;
 
     if (!ndviChangePath) {
       return NextResponse.json(
@@ -84,6 +85,32 @@ export async function POST(request: NextRequest) {
         { error: parsedResult.error || 'Change classification failed.' },
         { status: 400 }
       );
+    }
+
+    // Save real evidence to RAG Store
+    try {
+      if (sceneBefore && sceneAfter) {
+        const evidenceText = `Change detection analysis between Sentinel-2 scene ${sceneBefore.id} (${sceneBefore.date}) and scene ${sceneAfter.id} (${sceneAfter.date}) over the selected AOI at threshold ${t} produced the following results:
+Vegetation Increase: ${parsedResult.increasePct}%
+Vegetation Decrease (Loss): ${parsedResult.decreasePct}%
+No Significant Change: ${parsedResult.noChangePct}%`;
+
+        await EvidenceService.saveEvidence({
+          id: `change-${Date.now()}-${sceneBefore.id}-${sceneAfter.id}`,
+          text: evidenceText,
+          metadata: {
+            source: 'Copernicus Sentinel-2',
+            sourceType: 'satellite-change-analysis',
+            sceneId: `${sceneBefore.id} -> ${sceneAfter.id}`,
+            analysisType: 'change-detection',
+            acquisitionDate: `${sceneBefore.date} to ${sceneAfter.date}`,
+            model: 'NDVI Differencing',
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    } catch (e) {
+      console.error('[CHANGE DETECT] Failed to save evidence chunk', e);
     }
 
     return NextResponse.json(parsedResult);

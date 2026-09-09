@@ -101,7 +101,7 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: "url('/backgrounds/lavender.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: "url('https://i.postimg.cc/tgN4HJyh/1da0825937b704da027c3f82794e4b0c.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
       {/* Dark overlay for readability */}
       <div className="absolute inset-0 bg-purple-900/60 pointer-events-none" />
       <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-white/5 blur-[120px] pointer-events-none" />

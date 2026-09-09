@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
-import { predictionDemoDatasets, type PredictionDemoDataset, riskDemoDatasets, type RiskDemoDataset, suitabilityDemoDatasets, type SuitabilityDemoDataset } from '../data/landIntelligenceDemoData';
-
 import { useCallback } from 'react';
 
 // Dynamically import MapComponent to prevent SSR issues with Leaflet's window dependency
@@ -27,6 +25,7 @@ export default function LandIntelligence() {
   const [classificationResult, setClassificationResult] = useState<any>(null);
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [modelType, setModelType] = useState('bhuvan_api');
+  const [activeVisualTab, setActiveVisualTab] = useState<'overlay' | 'segmentation' | 'annotated'>('overlay');
 
   // Sentinel-2 Prep State (Dev Only)
   const [isPrepLoading, setIsPrepLoading] = useState(false);
@@ -42,9 +41,9 @@ export default function LandIntelligence() {
   const [preprocessResult, setPreprocessResult] = useState<any>(null);
   const [preprocessError, setPreprocessError] = useState<string | null>(null);
 
-  const [s2DateFrom, setS2DateFrom] = useState('2026-08-01');
-  const [s2DateTo, setS2DateTo] = useState('2026-08-31');
-  const [s2MaxCloud, setS2MaxCloud] = useState(20);
+  const [s2DateFrom, setS2DateFrom] = useState('2026-01-01');
+  const [s2DateTo, setS2DateTo] = useState('2026-01-31');
+  const [s2MaxCloud, setS2MaxCloud] = useState(100);
 
   // Change Detection State (Dual Scene)
   const [cdBeforeDateFrom, setCdBeforeDateFrom] = useState('2025-05-01');
@@ -141,54 +140,7 @@ export default function LandIntelligence() {
     };
   }, [isResizing, mapWidthPct]);
 
-  // Demo Data States
-  const [selectedPrediction, setSelectedPrediction] = useState<PredictionDemoDataset | null>(null);
-  const [isSimulatingPrediction, setIsSimulatingPrediction] = useState(false);
-  const [predictionStatusMessage, setPredictionStatusMessage] = useState<string>('');
-
-  const [selectedRisk, setSelectedRisk] = useState<RiskDemoDataset | null>(null);
-  const [isSimulatingRisk, setIsSimulatingRisk] = useState(false);
-  const [riskStatusMessage, setRiskStatusMessage] = useState<string>('');
-
-  const [selectedSuitability, setSelectedSuitability] = useState<SuitabilityDemoDataset | null>(null);
-  const [isSimulatingSuitability, setIsSimulatingSuitability] = useState(false);
-  const [suitabilityStatusMessage, setSuitabilityStatusMessage] = useState<string>('');
-
-  const simulatePrediction = async () => {
-    setIsSimulatingPrediction(true);
-    setPredictionStatusMessage('Initializing demo data...');
-    await delay(800);
-    setPredictionStatusMessage('Running prediction model...');
-    await delay(1200);
-    const randomData = predictionDemoDatasets[Math.floor(Math.random() * predictionDemoDatasets.length)];
-    setSelectedPrediction(randomData);
-    setIsSimulatingPrediction(false);
-    setPredictionStatusMessage('');
-  };
-
-  const simulateRisk = async () => {
-    setIsSimulatingRisk(true);
-    setRiskStatusMessage('Gathering risk indicators...');
-    await delay(700);
-    setRiskStatusMessage('Analyzing anomalies...');
-    await delay(1300);
-    const randomData = riskDemoDatasets[Math.floor(Math.random() * riskDemoDatasets.length)];
-    setSelectedRisk(randomData);
-    setIsSimulatingRisk(false);
-    setRiskStatusMessage('');
-  };
-
-  const simulateSuitability = async () => {
-    setIsSimulatingSuitability(true);
-    setSuitabilityStatusMessage('Collecting suitability metrics...');
-    await delay(600);
-    setSuitabilityStatusMessage('Evaluating scenarios...');
-    await delay(1400);
-    const randomData = suitabilityDemoDatasets[Math.floor(Math.random() * suitabilityDemoDatasets.length)];
-    setSelectedSuitability(randomData);
-    setIsSimulatingSuitability(false);
-    setSuitabilityStatusMessage('');
-  };
+  // Demo Data States have been removed as part of the real RAG implementation.
 
   useEffect(() => {
     if (isFullScreenMapOpen) {
@@ -625,6 +577,8 @@ export default function LandIntelligence() {
         body: JSON.stringify({
           ndviChangePath: cdDetectResult.outputPath,
           threshold: changeThreshold,
+          sceneBefore: cdBeforeSelectedScene,
+          sceneAfter: cdAfterSelectedScene
         }),
       });
 
@@ -947,31 +901,62 @@ export default function LandIntelligence() {
                 {classificationResult && (() => {
                   const raw = classificationResult.raw_response;
 
+                  const COLOR_MAP: Record<string, string> = {
+                    'Barren Land': '#f4a460',
+                    'Barren_Land': '#f4a460',
+                    'Built-up Area': '#dc143c',
+                    'Built-up_Area': '#dc143c',
+                    'Crop': '#ffff00',
+                    'Forest': '#008000',
+                    'Water': '#0000ff',
+                    'Unclassified': '#888888'
+                  };
+
                   let statsArray: any[] = [];
-                  let totalArea = 0;
+                  const totalAreaSqKm = raw?.total_area_sqkm || 0;
+                  const totalAreaHa = raw?.total_area_ha || (totalAreaSqKm * 100);
 
                   if (classificationResult.type === 'unet' && raw?.class_stats) {
-                    statsArray = Object.entries(raw.class_stats).map(([key, val]: [string, any], idx) => ({
-                      name: key.replace(/_/g, ' '),
-                      percent: Number(val),
-                      area: 0,
-                      color: `hsl(${(idx * 137.5) % 360}, 70%, 50%)`
-                    }));
+                    statsArray = Object.entries(raw.class_stats).map(([key, val]: [string, any], idx) => {
+                      const cleanName = key.replace(/_/g, ' ');
+                      const pct = Number(val);
+                      const areaHa = raw?.class_areas_ha?.[key] ?? (totalAreaHa > 0 ? (totalAreaHa * pct / 100) : 0);
+                      return {
+                        name: cleanName,
+                        percent: pct,
+                        areaHa: areaHa,
+                        color: COLOR_MAP[key] || COLOR_MAP[cleanName] || `hsl(${(idx * 137.5) % 360}, 70%, 50%)`
+                      };
+                    });
                   } else {
                     const extracted = raw?.statistics || raw?.data?.statistics || raw?.classes || raw?.data?.classes || raw?.data || [];
                     if (Array.isArray(extracted)) {
                       statsArray = extracted.map((item: any, idx: number) => ({
                         name: item.class_name || item.className || item.name || item.type || `Class ${idx + 1}`,
                         percent: item.percentage || item.percent || item.value || 0,
-                        area: item.area_sqkm || item.area || 0,
+                        areaHa: (item.area_sqkm || item.area || 0) * 100,
                         color: item.color || `hsl(${(idx * 137.5) % 360}, 70%, 50%)`
                       }));
                     }
-                    totalArea = raw?.area_sqkm || raw?.data?.area_sqkm || raw?.total_area || 0;
                   }
 
                   const isArray = statsArray.length > 0;
                   const dominant = isArray ? statsArray.reduce((prev: any, current: any) => (prev.percent > current.percent) ? prev : current) : null;
+
+                  const getVisualImage = () => {
+                    if (activeVisualTab === 'segmentation' && raw?.segmentation_mask) {
+                      return raw.segmentation_mask.startsWith('data:') ? raw.segmentation_mask : `data:image/png;base64,${raw.segmentation_mask}`;
+                    }
+                    if (activeVisualTab === 'annotated' && raw?.annotated) {
+                      return raw.annotated.startsWith('data:') ? raw.annotated : `data:image/png;base64,${raw.annotated}`;
+                    }
+                    if (raw?.overlay) {
+                      return raw.overlay.startsWith('data:') ? raw.overlay : `data:image/png;base64,${raw.overlay}`;
+                    }
+                    return null;
+                  };
+
+                  const visualImgSrc = getVisualImage();
 
                   return (
                     <div className="mt-2 pt-5 border-t border-border">
@@ -992,15 +977,15 @@ export default function LandIntelligence() {
                               </div>
                             </div>
                             <div className="p-3 bg-muted border border-border rounded-lg">
-                              <div className="text-[10px] uppercase font-bold text-text-secondary mb-1">Total Area</div>
+                              <div className="text-[10px] uppercase font-bold text-text-secondary mb-1">Total AOI Area</div>
                               <div className="text-sm font-semibold text-gis truncate">
-                                {totalArea ? `${Number(totalArea).toFixed(1)} sq km` : 'N/A'}
+                                {totalAreaSqKm > 0 ? `${totalAreaSqKm.toFixed(2)} sq km (${totalAreaHa.toFixed(1)} ha)` : 'N/A'}
                               </div>
                             </div>
                           </div>
 
                           <div className="space-y-3.5">
-                            <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">LULC Distribution</div>
+                            <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Real LULC Distribution</div>
                             {statsArray.map((cls: any, idx: number) => (
                               <div key={idx} className="text-[13px]">
                                 <div className="flex justify-between mb-1.5">
@@ -1008,7 +993,12 @@ export default function LandIntelligence() {
                                     <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: cls.color }}></span>
                                     <span className="text-text-secondary font-medium">{cls.name}</span>
                                   </div>
-                                  <span className="font-semibold text-foreground">{Number(cls.percent).toFixed(1)}%</span>
+                                  <div className="flex items-center gap-2 font-semibold text-foreground">
+                                    <span>{Number(cls.percent).toFixed(1)}%</span>
+                                    {cls.areaHa > 0 && (
+                                      <span className="text-[11px] font-normal text-text-secondary">({Number(cls.areaHa).toFixed(1)} ha)</span>
+                                    )}
+                                  </div>
                                 </div>
                                 {/* Progress bar visual */}
                                 <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
@@ -1018,12 +1008,41 @@ export default function LandIntelligence() {
                             ))}
                           </div>
 
-                          {classificationResult.type === 'unet' && raw?.overlay && (
-                            <div className="mt-5 border border-border rounded-xl overflow-hidden shadow-sm bg-muted">
-                              <div className="px-3 py-2 bg-muted border-b border-border text-[10px] uppercase font-bold text-text-secondary">
-                                Model Classification Overlay
+                          {classificationResult.type === 'unet' && (raw?.overlay || raw?.segmentation_mask || raw?.annotated) && (
+                            <div className="mt-6 border border-border rounded-xl overflow-hidden shadow-sm bg-muted">
+                              <div className="flex border-b border-border bg-muted/60">
+                                {raw?.overlay && (
+                                  <button
+                                    onClick={() => setActiveVisualTab('overlay')}
+                                    className={`px-3 py-2 text-[11px] font-medium transition-colors ${activeVisualTab === 'overlay' ? 'bg-surface text-gis border-b-2 border-gis font-semibold' : 'text-text-secondary hover:text-foreground'}`}
+                                  >
+                                    Classified Overlay
+                                  </button>
+                                )}
+                                {raw?.segmentation_mask && (
+                                  <button
+                                    onClick={() => setActiveVisualTab('segmentation')}
+                                    className={`px-3 py-2 text-[11px] font-medium transition-colors ${activeVisualTab === 'segmentation' ? 'bg-surface text-gis border-b-2 border-gis font-semibold' : 'text-text-secondary hover:text-foreground'}`}
+                                  >
+                                    Segmentation Mask
+                                  </button>
+                                )}
+                                {raw?.annotated && (
+                                  <button
+                                    onClick={() => setActiveVisualTab('annotated')}
+                                    className={`px-3 py-2 text-[11px] font-medium transition-colors ${activeVisualTab === 'annotated' ? 'bg-surface text-gis border-b-2 border-gis font-semibold' : 'text-text-secondary hover:text-foreground'}`}
+                                  >
+                                    Annotated Types
+                                  </button>
+                                )}
                               </div>
-                              <img src={`data:image/png;base64,${raw.overlay}`} alt="Classification Overlay" className="w-full h-auto object-contain" />
+                              {visualImgSrc ? (
+                                <div className="p-2 flex justify-center bg-black/20">
+                                  <img src={visualImgSrc} alt="U-Net Classification Result" className="max-w-full h-auto object-contain rounded" />
+                                </div>
+                              ) : (
+                                <div className="p-4 text-center text-xs text-text-secondary">No visual map available for this selection.</div>
+                              )}
                             </div>
                           )}
                         </>
@@ -1687,86 +1706,11 @@ export default function LandIntelligence() {
                       <h2 className="text-lg font-bold text-foreground">Land Cover Prediction</h2>
                       <p className="text-xs text-text-secondary mt-1">Predict future urban expansion, agricultural shifts, and forest cover changes based on historical trends.</p>
                     </div>
-                    <button
-                      onClick={simulatePrediction}
-                      disabled={isSimulatingPrediction || !selectedAoi}
-                      className="px-6 py-3 bg-indigo-600 text-white text-[13px] font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
-                    >
-                      {isSimulatingPrediction ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          {predictionStatusMessage || 'Running Prediction...'}
-                        </>
-                      ) : (
-                        'Run Prediction Model'
-                      )}
-                    </button>
                   </div>
-
-                  {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
-                      Please draw an Area of Interest (AOI) on the map to begin.
-                    </div>
-                  )}
-
-                  {selectedPrediction && !isSimulatingPrediction && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] font-bold text-indigo-800 uppercase tracking-widest mb-1 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                            Simulated Result
-                          </div>
-                          <div className="text-lg font-bold text-indigo-900">{selectedPrediction.title}</div>
-                          <div className="text-sm text-indigo-700/80 mt-1">{selectedPrediction.interpretation}</div>
-                        </div>
-                        <div className="text-right pl-4 border-l border-indigo-200">
-                          <div className="text-[10px] uppercase font-bold text-indigo-400">Confidence</div>
-                          <div className="text-2xl font-mono font-bold text-indigo-600">{selectedPrediction.confidence}%</div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Forecast Period</div>
-                          <div className="text-sm font-semibold text-foreground">{selectedPrediction.forecastPeriod}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Class</div>
-                          <div className="text-sm font-semibold text-foreground">{selectedPrediction.dominantClass}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Area Change</div>
-                          <div className={`text-sm font-semibold ${selectedPrediction.predictedAreaChangeSqKm > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {selectedPrediction.predictedAreaChangeSqKm > 0 ? '+' : ''}{selectedPrediction.predictedAreaChangeSqKm} km²
-                          </div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Trend</div>
-                          <div className="text-sm font-semibold text-foreground capitalize flex items-center gap-2">
-                            {selectedPrediction.trend === 'increasing' ? '↗️' : selectedPrediction.trend === 'decreasing' ? '↘️' : '➡️'} {selectedPrediction.trend}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Predicted Land Cover Distribution</h3>
-                        <div className="space-y-4">
-                          {selectedPrediction.chartData.map(item => (
-                            <div key={item.name}>
-                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
-                                <span>{item.name}</span>
-                                <span className="font-mono">{item.value.toFixed(1)}%</span>
-                              </div>
-                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                                <div className="h-full" style={{ width: `${item.value}%`, backgroundColor: item.color }}></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="p-8 text-center bg-surface border border-border rounded-xl">
+                    <div className="text-sm font-semibold text-text-secondary mb-2">Analysis Unavailable</div>
+                    <p className="text-xs text-text-secondary/80">The predictive U-Net model is not yet deployed to production. Insufficient evidence to generate a reliable forecast.</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1780,94 +1724,11 @@ export default function LandIntelligence() {
                       <h2 className="text-lg font-bold text-foreground">Risk & Anomaly Detection</h2>
                       <p className="text-xs text-text-secondary mt-1">Identify ecological vulnerabilities, unauthorized deforestation, and environmental stress hotspots.</p>
                     </div>
-                    <button
-                      onClick={simulateRisk}
-                      disabled={isSimulatingRisk || !selectedAoi}
-                      className="px-6 py-3 bg-red-600 text-white text-[13px] font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
-                    >
-                      {isSimulatingRisk ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          {riskStatusMessage || 'Analyzing Risks...'}
-                        </>
-                      ) : (
-                        'Run Risk Assessment'
-                      )}
-                    </button>
                   </div>
-
-                  {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
-                      Please draw an Area of Interest (AOI) on the map to begin.
-                    </div>
-                  )}
-
-                  {selectedRisk && !isSimulatingRisk && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <div className={`border p-4 rounded-xl flex items-center justify-between ${selectedRisk.severityCategory === 'Critical' ? 'bg-red-50 border-red-200' :
-                          selectedRisk.severityCategory === 'High' ? 'bg-orange-50 border-orange-200' :
-                            selectedRisk.severityCategory === 'Moderate' ? 'bg-yellow-50 border-yellow-200' :
-                              'bg-green-50 border-green-200'
-                        }`}>
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 text-foreground/70">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            Simulated Result
-                          </div>
-                          <div className="text-lg font-bold text-foreground">{selectedRisk.title}</div>
-                          <div className="text-sm text-foreground/80 mt-1">{selectedRisk.interpretation}</div>
-                        </div>
-                        <div className="text-right pl-4 border-l border-black/10 flex flex-col items-end">
-                          <div className="text-[10px] uppercase font-bold text-foreground/50">Overall Risk Score</div>
-                          <div className={`text-3xl font-mono font-bold ${selectedRisk.overallRisk > 75 ? 'text-red-600' :
-                              selectedRisk.overallRisk > 50 ? 'text-orange-600' :
-                                selectedRisk.overallRisk > 25 ? 'text-yellow-600' :
-                                  'text-green-600'
-                            }`}>{selectedRisk.overallRisk}</div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Severity Category</div>
-                          <div className={`text-sm font-bold ${selectedRisk.severityCategory === 'Critical' ? 'text-red-600' :
-                              selectedRisk.severityCategory === 'High' ? 'text-orange-600' :
-                                selectedRisk.severityCategory === 'Moderate' ? 'text-yellow-600' :
-                                  'text-green-600'
-                            }`}>{selectedRisk.severityCategory}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Dominant Factor</div>
-                          <div className="text-sm font-semibold text-foreground">{selectedRisk.dominantRiskFactor}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Anomaly Score</div>
-                          <div className="text-sm font-mono font-bold text-foreground">{selectedRisk.anomalyScore}/100</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Hotspots Found</div>
-                          <div className="text-sm font-mono font-bold text-red-600">{selectedRisk.hotspotCount} clusters</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Risk Factor Breakdown</h3>
-                        <div className="space-y-4">
-                          {selectedRisk.chartData.map(item => (
-                            <div key={item.name}>
-                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
-                                <span>{item.name}</span>
-                                <span className="font-mono">{item.value}/100</span>
-                              </div>
-                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                                <div className="h-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.fill }}></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="p-8 text-center bg-surface border border-border rounded-xl">
+                    <div className="text-sm font-semibold text-text-secondary mb-2">Analysis Unavailable</div>
+                    <p className="text-xs text-text-secondary/80">The risk detection model is not currently deployed. No risk evidence can be computed for this AOI.</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1881,82 +1742,11 @@ export default function LandIntelligence() {
                       <h2 className="text-lg font-bold text-foreground">Land Suitability Analysis</h2>
                       <p className="text-xs text-text-secondary mt-1">Multi-criteria analysis to determine the optimal use of land for agriculture, urban development, and conservation.</p>
                     </div>
-                    <button
-                      onClick={simulateSuitability}
-                      disabled={isSimulatingSuitability || !selectedAoi}
-                      className="px-6 py-3 bg-emerald-600 text-white text-[13px] font-bold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 uppercase tracking-wide"
-                    >
-                      {isSimulatingSuitability ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          {suitabilityStatusMessage || 'Running Suitability Analysis...'}
-                        </>
-                      ) : (
-                        'Run Suitability Analysis'
-                      )}
-                    </button>
                   </div>
-
-                  {!selectedAoi && (
-                    <div className="p-8 text-center text-text-secondary text-sm bg-border/10 rounded-xl border border-dashed border-border">
-                      Please draw an Area of Interest (AOI) on the map to begin.
-                    </div>
-                  )}
-
-                  {selectedSuitability && !isSimulatingSuitability && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Simulated Result
-                          </div>
-                          <div className="text-lg font-bold text-emerald-900">{selectedSuitability.title}</div>
-                          <div className="text-sm text-emerald-700/80 mt-1">{selectedSuitability.interpretation}</div>
-                        </div>
-                        <div className="text-right pl-4 border-l border-emerald-200">
-                          <div className="text-[10px] uppercase font-bold text-emerald-600">Suitability Index</div>
-                          <div className="text-3xl font-mono font-bold text-emerald-700">{selectedSuitability.overallSuitability}</div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Recommended Zone</div>
-                          <div className="text-sm font-bold text-foreground">{selectedSuitability.recommendedZone}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Limiting Factor</div>
-                          <div className="text-sm font-semibold text-red-600">{selectedSuitability.limitingFactor}</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Suitable Area</div>
-                          <div className="text-sm font-mono font-bold text-emerald-600">{selectedSuitability.suitableAreaSqKm} km²</div>
-                        </div>
-                        <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
-                          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Unsuitable Area</div>
-                          <div className="text-sm font-mono font-bold text-red-500">{selectedSuitability.unsuitableAreaSqKm} km²</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
-                        <h3 className="text-[11px] font-bold text-gis uppercase tracking-widest mb-6 border-b border-border pb-2">Suitability Scores by Domain</h3>
-                        <div className="space-y-4">
-                          {selectedSuitability.chartData.map(item => (
-                            <div key={item.subject}>
-                              <div className="flex justify-between items-center mb-1 text-xs font-semibold text-foreground">
-                                <span>{item.subject}</span>
-                                <span className="font-mono">{item.A}/100</span>
-                              </div>
-                              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                                <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${item.A}%` }}></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="p-8 text-center bg-surface border border-border rounded-xl">
+                    <div className="text-sm font-semibold text-text-secondary mb-2">Analysis Unavailable</div>
+                    <p className="text-xs text-text-secondary/80">The suitability analysis system is offline. No suitability indicators have been calculated for this region.</p>
+                  </div>
                 </div>
               </div>
             )}

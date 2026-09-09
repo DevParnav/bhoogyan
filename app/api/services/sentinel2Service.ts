@@ -139,10 +139,22 @@ export class Sentinel2Service {
     };
 
     console.log('[STAC DEBUG] --- STAC REQUEST LOGGING ---');
-    console.log('[STAC DEBUG] 1. Geometry Type:', aoi.geometry.type);
-    console.log('[STAC DEBUG] 2. AOI Bounding Box:', [bbox.minLng, bbox.minLat, bbox.maxLng, bbox.maxLat]);
-    console.log('[STAC DEBUG] 3. Datetime Sent:', datetime);
-    console.log('[STAC DEBUG] 4. Cloud Percentage Sent (lte):', searchOptions.maxCloudCoverage);
+    console.log('[STAC DEBUG] AOI geometry type:', aoi.geometry.type);
+    console.log('[STAC DEBUG] complete AOI bounding box:', [bbox.minLng, bbox.minLat, bbox.maxLng, bbox.maxLat]);
+    if (aoi.geometry.type === 'Polygon' && Array.isArray(aoi.geometry.coordinates[0])) {
+      const ring = aoi.geometry.coordinates[0];
+      console.log('[STAC DEBUG] first coordinate:', ring[0]);
+      console.log('[STAC DEBUG] last coordinate:', ring[ring.length - 1]);
+      console.log('[STAC DEBUG] longitude range:', `${bbox.minLng} to ${bbox.maxLng}`);
+      console.log('[STAC DEBUG] latitude range:', `${bbox.minLat} to ${bbox.maxLat}`);
+    }
+    console.log('[STAC DEBUG] dateFrom:', searchOptions.dateFrom);
+    console.log('[STAC DEBUG] dateTo:', searchOptions.dateTo);
+    console.log('[STAC DEBUG] cloud percentage:', searchOptions.maxCloudCoverage);
+    console.log('[STAC DEBUG] STAC collection:', payload.collections[0]);
+    console.log('[STAC DEBUG] STAC URL:', stacUrl);
+    console.log('[STAC DEBUG] HTTP method: POST');
+    console.log('[STAC DEBUG] request payload:', JSON.stringify(payload, null, 2));
 
     let stacFeatures: any[] = [];
     try {
@@ -157,17 +169,27 @@ export class Sentinel2Service {
       });
       clearTimeout(timeoutId);
 
-      console.log('[STAC DEBUG] 5. HTTP Status:', stacRes.status);
+      console.log('[STAC DEBUG] response HTTP status:', stacRes.status);
+      console.log('[STAC DEBUG] response content type:', stacRes.headers.get('content-type'));
 
       if (!stacRes.ok) {
         const errText = await stacRes.text();
-        console.error('[STAC DEBUG] 6. Raw response error:', errText);
+        console.error('[STAC DEBUG] response error body:', errText);
         throw new Error(`Copernicus STAC API failure: HTTP ${stacRes.status}`);
       }
 
       const stacData = await stacRes.json();
       stacFeatures = stacData.features || [];
-      console.log('[STAC DEBUG] 7. Response Features Length:', stacFeatures.length);
+      console.log('[STAC DEBUG] returned feature count:', stacFeatures.length);
+      
+      if (stacFeatures.length > 0) {
+        const first = stacFeatures[0];
+        console.log('[STAC DEBUG] first item ID:', first.id);
+        console.log('[STAC DEBUG] first item datetime:', first.properties?.datetime);
+        console.log('[STAC DEBUG] first item eo:cloud_cover:', first.properties?.['eo:cloud_cover']);
+        console.log('[STAC DEBUG] first item collection:', first.collection);
+      }
+      
       console.log('[STAC DEBUG] ----------------------------');
     } catch (err: any) {
       if (err.name === 'AbortError') throw new Error('Copernicus STAC API timeout');
@@ -217,16 +239,28 @@ export class Sentinel2Service {
     const R = 6371000; // Earth radius in meters
     const dLat = (bbox.maxLat - bbox.minLat) * Math.PI / 180;
     const heightMeters = dLat * R;
-    const height = Math.max(1, Math.ceil(heightMeters / 20));
+    const rawHeight = Math.max(1, Math.ceil(heightMeters / 20));
 
     const meanLat = (bbox.minLat + bbox.maxLat) / 2;
     const dLon = (bbox.maxLng - bbox.minLng) * Math.PI / 180;
     const widthMeters = dLon * R * Math.cos(meanLat * Math.PI / 180);
-    const width = Math.max(1, Math.ceil(widthMeters / 20));
+    const rawWidth = Math.max(1, Math.ceil(widthMeters / 20));
+
+    // CRITICAL FIX: Ensure raster dimensions match U-Net 64x64 sliding window patch size & stride (32).
+    // If dimensions are < 64px or unaligned, sliding_window loop fails to execute on edge/all pixels,
+    // causing unpopulated output arrays that default to Class 0 (92.5% Barren Land).
+    const getPatchGridDim = (rawPx: number) => {
+      if (rawPx <= 64) return 64;
+      const k = Math.ceil((rawPx - 64) / 32);
+      return k * 32 + 64;
+    };
+
+    const width = getPatchGridDim(rawWidth);
+    const height = getPatchGridDim(rawHeight);
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`[SENTINEL2] Downloading scene: ${scene.id}`);
-      console.log(`[SENTINEL2] Calculated Dimensions: ${width}x${height} for 20m resolution`);
+      console.log(`[SENTINEL2] Raw AOI Grid: ${rawWidth}x${rawHeight} -> U-Net Patch Aligned Dimensions: ${width}x${height}`);
       console.log(`[SENTINEL2] Process API Request:`, {
         endpoint: 'https://sh.dataspace.copernicus.eu/process/v1',
         sceneId: scene.id,
@@ -236,7 +270,7 @@ export class Sentinel2Service {
       });
     }
 
-    // Exact requested band order for the model
+    // Exact requested band order for the model with discrete categorical SCL rounding
     const evalscript = `//VERSION=3
 function setup() {
   return {
@@ -259,7 +293,7 @@ function evaluatePixel(sample) {
     sample.B08, 
     sample.B8A, 
     sample.B09, 
-    sample.SCL, 
+    Math.round(sample.SCL), 
     sample.B11, 
     sample.B12
   ];
