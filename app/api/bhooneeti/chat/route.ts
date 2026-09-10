@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { askGemini } from '@/app/api/services/geminiService';
+import { EvidenceService } from '@/app/api/services/evidenceService';
 
 export async function POST(req: Request) {
   const startTime = Date.now();
@@ -25,8 +26,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Message too long' }, { status: 400 });
     }
 
+    console.log('[BHOONEETI] retrieving evidence from RAG store');
+    const evidenceContext = await EvidenceService.retrieveEvidence(message, 3);
+    console.log(`[BHOONEETI] found ${evidenceContext.length} relevant evidence chunks`);
+
     console.log('[BHOONEETI] calling Gemini');
-    const answer = await askGemini(message);
+    const answer = await askGemini(message, evidenceContext);
     console.log('[BHOONEETI] Gemini response received');
     
     const duration = Date.now() - startTime;
