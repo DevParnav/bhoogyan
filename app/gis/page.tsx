@@ -643,7 +643,7 @@ export default function LandIntelligence() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-12 flex flex-col h-[calc(100vh-40px)]">
+    <div className="max-w-7xl mx-auto pb-12 flex flex-col min-h-full">
       <div className="flex-shrink-0">
         <Header
           breadcrumbs={[{ label: 'Land Intelligence' }]}
@@ -660,8 +660,8 @@ export default function LandIntelligence() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${activeTab === tab.id
-                  ? 'border-[var(--color-gis)] text-gis'
-                  : 'border-transparent text-text-secondary hover:text-foreground hover:border-border'
+                ? 'border-[var(--color-gis)] text-gis'
+                : 'border-transparent text-text-secondary hover:text-foreground hover:border-border'
                 }`}
             >
               {tab.label}
@@ -671,18 +671,18 @@ export default function LandIntelligence() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-hidden pb-4">
+      <div className="pb-4">
         <style>{`
           @media (min-width: 1024px) {
             .resizable-map-panel { width: ${mapWidthPct}% !important; flex: 0 0 ${mapWidthPct}% !important; }
             .resizable-results-panel { width: calc(100% - ${mapWidthPct}% - 16px) !important; flex: 0 0 calc(100% - ${mapWidthPct}% - 16px) !important; }
           }
         `}</style>
-        <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-0 relative">
+        <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-0 relative">
 
           {/* Main Map Container */}
-          <div className={`resizable-map-panel flex flex-col h-full z-0 w-full ${isResizing ? 'pointer-events-none' : ''}`}>
-            <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-full">
+          <div className={`resizable-map-panel flex flex-col z-0 w-full lg:h-[min(65vh,640px)] ${isResizing ? 'pointer-events-none' : ''}`}>
+            <div className="bg-surface rounded-xl border border-border shadow-[0_12px_40px_rgba(91,74,62,0.06)] overflow-hidden flex flex-col h-[min(70vh,560px)] lg:h-full">
               <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 flex-shrink-0">
                 <h3 className="font-semibold text-foreground">Interactive GIS Map</h3>
                 {selectedAoi ? (
@@ -711,7 +711,7 @@ export default function LandIntelligence() {
           </div>
 
           {/* Side Panels Based on Tab */}
-          <div className={`resizable-results-panel h-full w-full overflow-y-auto pr-2 pb-12 space-y-6 ${isResizing ? 'pointer-events-none select-none' : ''}`}>
+          <div className={`resizable-results-panel w-full lg:h-[min(65vh,640px)] overflow-y-auto pr-2 pb-12 space-y-6 ${isResizing ? 'pointer-events-none select-none' : ''}`}>
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
@@ -1060,8 +1060,8 @@ export default function LandIntelligence() {
                           key={mode}
                           onClick={() => setPanelMode(mode)}
                           className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded ${panelMode === mode
-                              ? 'bg-surface text-gis shadow-sm border border-border'
-                              : 'text-text-secondary hover:text-foreground hover:bg-surface/50'
+                            ? 'bg-surface text-gis shadow-sm border border-border'
+                            : 'text-text-secondary hover:text-foreground hover:bg-surface/50'
                             }`}
                         >
                           {mode}
@@ -1805,9 +1805,9 @@ export default function LandIntelligence() {
                   {selectedRisk && !isSimulatingRisk && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                       <div className={`border p-4 rounded-xl flex items-center justify-between ${selectedRisk.severityCategory === 'Critical' ? 'bg-red-50 border-red-200' :
-                          selectedRisk.severityCategory === 'High' ? 'bg-orange-50 border-orange-200' :
-                            selectedRisk.severityCategory === 'Moderate' ? 'bg-yellow-50 border-yellow-200' :
-                              'bg-green-50 border-green-200'
+                        selectedRisk.severityCategory === 'High' ? 'bg-orange-50 border-orange-200' :
+                          selectedRisk.severityCategory === 'Moderate' ? 'bg-yellow-50 border-yellow-200' :
+                            'bg-green-50 border-green-200'
                         }`}>
                         <div>
                           <div className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2 text-foreground/70">
@@ -1820,9 +1820,9 @@ export default function LandIntelligence() {
                         <div className="text-right pl-4 border-l border-black/10 flex flex-col items-end">
                           <div className="text-[10px] uppercase font-bold text-foreground/50">Overall Risk Score</div>
                           <div className={`text-3xl font-mono font-bold ${selectedRisk.overallRisk > 75 ? 'text-red-600' :
-                              selectedRisk.overallRisk > 50 ? 'text-orange-600' :
-                                selectedRisk.overallRisk > 25 ? 'text-yellow-600' :
-                                  'text-green-600'
+                            selectedRisk.overallRisk > 50 ? 'text-orange-600' :
+                              selectedRisk.overallRisk > 25 ? 'text-yellow-600' :
+                                'text-green-600'
                             }`}>{selectedRisk.overallRisk}</div>
                         </div>
                       </div>
@@ -1831,9 +1831,9 @@ export default function LandIntelligence() {
                         <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
                           <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1">Severity Category</div>
                           <div className={`text-sm font-bold ${selectedRisk.severityCategory === 'Critical' ? 'text-red-600' :
-                              selectedRisk.severityCategory === 'High' ? 'text-orange-600' :
-                                selectedRisk.severityCategory === 'Moderate' ? 'text-yellow-600' :
-                                  'text-green-600'
+                            selectedRisk.severityCategory === 'High' ? 'text-orange-600' :
+                              selectedRisk.severityCategory === 'Moderate' ? 'text-yellow-600' :
+                                'text-green-600'
                             }`}>{selectedRisk.severityCategory}</div>
                         </div>
                         <div className="bg-surface p-4 rounded-xl border border-border shadow-sm">
