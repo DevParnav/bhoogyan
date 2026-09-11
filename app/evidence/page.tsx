@@ -16,29 +16,29 @@ type Evidence = {
 };
 
 const domainColors: Record<string, string> = {
-  "Land Use":          "bg-evidence-light text-evidence-dark border-evidence/20",
-  "Urban Planning":    "bg-gis-light text-gis-dark border-gis/20",
-  "Geospatial":        "bg-gis-light text-gis-dark border-gis/20",
-  "Land Rights":       "bg-policy-light text-policy-dark border-policy/20",
-  "Environment":       "bg-ai-light text-ai-dark border-ai/20",
-  "Water Resources":   "bg-ai-light text-ai-dark border-ai/20",
-  "Agriculture":       "bg-evidence-light text-evidence-dark border-evidence/20",
-  "Infrastructure":    "bg-brand-light text-brand border-brand/20",
-  "Biodiversity":      "bg-ai-light text-ai-dark border-ai/20",
-  "Climate":           "bg-policy-light text-policy-dark border-policy/20",
-  "Heritage":          "bg-policy-light text-policy-dark border-policy/20",
-  "Socioeconomic":     "bg-brand-light text-brand border-brand/20",
-  "Disaster Risk":     "bg-policy-light text-policy-dark border-policy/20",
-  "Public Health":     "bg-evidence-light text-evidence-dark border-evidence/20",
+  "Land Use": "bg-evidence-light text-evidence-dark border-evidence/20",
+  "Urban Planning": "bg-gis-light text-gis-dark border-gis/20",
+  "Geospatial": "bg-gis-light text-gis-dark border-gis/20",
+  "Land Rights": "bg-policy-light text-policy-dark border-policy/20",
+  "Environment": "bg-ai-light text-ai-dark border-ai/20",
+  "Water Resources": "bg-ai-light text-ai-dark border-ai/20",
+  "Agriculture": "bg-evidence-light text-evidence-dark border-evidence/20",
+  "Infrastructure": "bg-brand-light text-brand border-brand/20",
+  "Biodiversity": "bg-ai-light text-ai-dark border-ai/20",
+  "Climate": "bg-policy-light text-policy-dark border-policy/20",
+  "Heritage": "bg-policy-light text-policy-dark border-policy/20",
+  "Socioeconomic": "bg-brand-light text-brand border-brand/20",
+  "Disaster Risk": "bg-policy-light text-policy-dark border-policy/20",
+  "Public Health": "bg-evidence-light text-evidence-dark border-evidence/20",
 };
 
 const sourceTypeColors: Record<string, string> = {
-  Research:   "bg-evidence/10 text-evidence border-evidence/30",
-  Policy:     "bg-gis/10 text-gis border-gis/30",
-  Legal:      "bg-policy/10 text-policy border-policy/30",
-  GIS:        "bg-ai/10 text-ai border-ai/30",
-  Satellite:  "bg-brand/10 text-brand border-brand/30",
-  Report:     "bg-foreground/10 text-foreground border-border",
+  Research: "bg-evidence/10 text-evidence border-evidence/30",
+  Policy: "bg-gis/10 text-gis border-gis/30",
+  Legal: "bg-policy/10 text-policy border-policy/30",
+  GIS: "bg-ai/10 text-ai border-ai/30",
+  Satellite: "bg-brand/10 text-brand border-brand/30",
+  Report: "bg-foreground/10 text-foreground border-border",
 };
 
 const mockEvidence: Evidence[] = [
@@ -468,10 +468,35 @@ const ALL_ACCESS = ["Public", "Official", "Restricted"];
 
 export default function EvidenceExplorer() {
   const [selectedEvidence, setSelectedEvidence] = useState<Evidence | null>(null);
+  const [workspaceEvidenceIds, setWorkspaceEvidenceIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [filterSource, setFilterSource] = useState("All");
   const [filterDomain, setFilterDomain] = useState("All");
   const [filterAccess, setFilterAccess] = useState("All");
+
+  useEffect(() => {
+    const savedWorkspaceEvidence = localStorage.getItem("bhoogyan_workspace_evidence");
+    if (!savedWorkspaceEvidence) return;
+
+    try {
+      const parsedIds: unknown = JSON.parse(savedWorkspaceEvidence);
+      if (Array.isArray(parsedIds) && parsedIds.every(id => typeof id === "string")) {
+        setWorkspaceEvidenceIds(parsedIds);
+      }
+    } catch {
+      localStorage.removeItem("bhoogyan_workspace_evidence");
+    }
+  }, []);
+
+  const addToWorkspace = (evidence: Evidence) => {
+    setWorkspaceEvidenceIds(currentIds => {
+      if (currentIds.includes(evidence.id)) return currentIds;
+
+      const updatedIds = [...currentIds, evidence.id];
+      localStorage.setItem("bhoogyan_workspace_evidence", JSON.stringify(updatedIds));
+      return updatedIds;
+    });
+  };
 
   const filtered = useMemo(() => {
     return mockEvidence.filter(ev => {
@@ -547,11 +572,10 @@ export default function EvidenceExplorer() {
                 <button
                   key={d}
                   onClick={() => setFilterDomain(active ? "All" : d)}
-                  className={`px-3 py-1 rounded-full border font-medium transition-colors ${
-                    active
+                  className={`px-3 py-1 rounded-full border font-medium transition-colors ${active
                       ? (domainColors[d] ?? "bg-evidence-light text-evidence-dark border-evidence/20") + " ring-1 ring-current"
                       : "border-border text-text-secondary hover:border-evidence hover:text-evidence"
-                  }`}
+                    }`}
                 >
                   {d} ({count})
                 </button>
@@ -570,11 +594,10 @@ export default function EvidenceExplorer() {
                 <div
                   key={ev.id}
                   onClick={() => setSelectedEvidence(ev.id === selectedEvidence?.id ? null : ev)}
-                  className={`bg-surface p-5 rounded-xl shadow-sm border cursor-pointer transition-all ${
-                    selectedEvidence?.id === ev.id
+                  className={`bg-surface p-5 rounded-xl shadow-sm border cursor-pointer transition-all ${selectedEvidence?.id === ev.id
                       ? "border-evidence ring-1 ring-evidence"
                       : "border-border hover:border-evidence/50"
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-2 gap-2 flex-wrap">
                     <div className="flex gap-2 items-center flex-wrap">
@@ -647,8 +670,12 @@ export default function EvidenceExplorer() {
               </div>
 
               <div className="pt-2">
-                <button className="w-full bg-evidence text-white py-2.5 rounded-lg font-medium hover:bg-evidence/90 transition-colors text-sm">
-                  Add to Workspace
+                <button
+                  onClick={() => addToWorkspace(selectedEvidence)}
+                  disabled={workspaceEvidenceIds.includes(selectedEvidence.id)}
+                  className="w-full bg-evidence text-white py-2.5 rounded-lg font-medium hover:bg-evidence/90 transition-colors text-sm disabled:cursor-default disabled:bg-evidence/70"
+                >
+                  {workspaceEvidenceIds.includes(selectedEvidence.id) ? "Added to Workspace" : "Add to Workspace"}
                 </button>
               </div>
             </div>
