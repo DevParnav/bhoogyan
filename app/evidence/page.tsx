@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '@/components/Header';
 
 type Evidence = {
@@ -573,8 +573,8 @@ export default function EvidenceExplorer() {
                   key={d}
                   onClick={() => setFilterDomain(active ? "All" : d)}
                   className={`px-3 py-1 rounded-full border font-medium transition-colors ${active
-                      ? (domainColors[d] ?? "bg-evidence-light text-evidence-dark border-evidence/20") + " ring-1 ring-current"
-                      : "border-border text-text-secondary hover:border-evidence hover:text-evidence"
+                    ? (domainColors[d] ?? "bg-evidence-light text-evidence-dark border-evidence/20") + " ring-1 ring-current"
+                    : "border-border text-text-secondary hover:border-evidence hover:text-evidence"
                     }`}
                 >
                   {d} ({count})
@@ -595,8 +595,8 @@ export default function EvidenceExplorer() {
                   key={ev.id}
                   onClick={() => setSelectedEvidence(ev.id === selectedEvidence?.id ? null : ev)}
                   className={`bg-surface p-5 rounded-xl shadow-sm border cursor-pointer transition-all ${selectedEvidence?.id === ev.id
-                      ? "border-evidence ring-1 ring-evidence"
-                      : "border-border hover:border-evidence/50"
+                    ? "border-evidence ring-1 ring-evidence"
+                    : "border-border hover:border-evidence/50"
                     }`}
                 >
                   <div className="flex justify-between items-start mb-2 gap-2 flex-wrap">
